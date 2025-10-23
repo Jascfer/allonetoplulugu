@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User, Search, Filter, Grid, List, SortAsc, SortDesc, BookOpen, TrendingUp, Award } from 'lucide-react';
+import { Download, Eye, Star, Clock, User, Filter, Grid, List, TrendingUp } from 'lucide-react';
 import apiService from '../services/api';
 
 interface Category {
