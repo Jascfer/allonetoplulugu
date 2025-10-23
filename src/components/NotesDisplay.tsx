@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User } from 'lucide-react';
+import { Download, Eye, Star, Clock, User, Search, Filter, TrendingUp, BookOpen } from 'lucide-react';
 import apiService from '../services/api';
 
 interface Category {
@@ -36,6 +36,7 @@ const NotesDisplay: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -93,65 +94,84 @@ const NotesDisplay: React.FC = () => {
   });
 
   const containerStyle = {
-    maxWidth: '1200px',
+    padding: '80px 20px 20px 20px',
+    maxWidth: '1400px',
     margin: '0 auto',
-    padding: '20px',
-    backgroundColor: '#f8fafc',
-    minHeight: '100vh'
+    color: 'white',
+    minHeight: 'calc(100vh - 80px)',
   };
 
   const headerStyle = {
     background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-    color: 'white',
     padding: '60px 30px',
     borderRadius: '16px',
     marginBottom: '40px',
     textAlign: 'center' as const,
     boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-    border: '1px solid rgba(255,255,255,0.1)'
+    border: '1px solid rgba(255,255,255,0.1)',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  };
+
+  const headerOverlayStyle = {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'radial-gradient(circle at top left, rgba(34,197,94,0.2) 0%, transparent 50%), radial-gradient(circle at bottom right, rgba(59,130,246,0.2) 0%, transparent 50%)',
+    zIndex: 0,
+  };
+
+  const headerContentStyle = {
+    position: 'relative' as const,
+    zIndex: 1,
   };
 
   const searchContainerStyle = {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
     borderRadius: '16px',
     padding: '30px',
     marginBottom: '30px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-    border: '1px solid rgba(0,0,0,0.05)'
+    border: '1px solid rgba(255,255,255,0.1)',
   };
 
   const inputStyle = {
     width: '100%',
     padding: '16px 20px',
-    border: '2px solid #e2e8f0',
+    border: '2px solid rgba(255,255,255,0.2)',
     borderRadius: '12px',
     fontSize: '16px',
     marginBottom: '15px',
     transition: 'all 0.3s ease',
-    backgroundColor: '#f8fafc'
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: 'white',
+    '::placeholder': {
+      color: '#cbd5e1',
+    },
+    '&:focus': {
+      borderColor: '#22c55e',
+      outline: 'none',
+    },
   };
 
   const selectStyle = {
     ...inputStyle,
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     marginRight: '15px',
     width: 'auto',
     minWidth: '180px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    appearance: 'none' as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23cbd5e1' class='w-6 h-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 15px center',
+    backgroundSize: '18px',
   };
 
-  const noteCardStyle = {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '30px',
-    marginBottom: '25px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    border: '1px solid rgba(0,0,0,0.05)',
-    transition: 'all 0.3s ease',
-    position: 'relative' as const
-  };
-
-  const buttonStyle = {
+  const filterButtonStyle = {
     padding: '14px 28px',
     backgroundColor: '#3b82f6',
     color: 'white',
@@ -164,226 +184,455 @@ const NotesDisplay: React.FC = () => {
     alignItems: 'center',
     gap: '10px',
     transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+    flexShrink: 0,
+  };
+
+  const noteCardStyle = {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(5px)',
+    borderRadius: '16px',
+    padding: '30px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    transition: 'all 0.3s ease',
+    position: 'relative' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    justifyContent: 'space-between',
+    height: '100%',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+    },
   };
 
   const tagStyle = {
-    backgroundColor: '#e0e7ff',
-    color: '#3730a3',
+    backgroundColor: 'rgba(34,197,94,0.2)',
+    color: '#22c55e',
     padding: '4px 12px',
-    borderRadius: '16px',
+    borderRadius: '8px',
     fontSize: '12px',
+    fontWeight: '600',
     marginRight: '8px',
     marginBottom: '8px',
-    display: 'inline-block'
+    display: 'inline-block',
   };
 
-  const statsStyle = {
+  const statIconStyle = {
+    color: '#22c55e',
+    marginRight: '5px',
+  };
+
+  const downloadButtonStyle = {
+    padding: '12px 20px',
+    backgroundColor: '#22c55e',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontSize: '15px',
+    fontWeight: '600',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 10px rgba(34, 197, 94, 0.3)',
+    marginTop: '20px',
+    '&:hover': {
+      backgroundColor: '#16a34a',
+      boxShadow: '0 6px 15px rgba(34, 197, 94, 0.4)',
+    },
+  };
+
+  const gridContainerStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+    gap: '30px',
+    marginTop: '30px',
+  };
+
+  const statsContainerStyle = {
     display: 'flex',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap' as const,
     gap: '20px',
+    marginTop: '40px',
+    marginBottom: '40px',
+  };
+
+  const statCardStyle = {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backdropFilter: 'blur(5px)',
+    borderRadius: '12px',
+    padding: '20px 30px',
+    textAlign: 'center' as const,
+    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    minWidth: '180px',
+  };
+
+  const filterOptionsStyle = {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '15px',
+    marginTop: '20px',
+    justifyContent: 'center',
+  };
+
+  const filterOptionGroupStyle = {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+    minWidth: '180px',
+  };
+
+  const filterLabelStyle = {
     fontSize: '14px',
-    color: '#64748b',
-    marginTop: '12px'
+    color: '#cbd5e1',
+    marginBottom: '5px',
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={{ margin: '0', fontSize: '28px' }}>📚 Notlar</h1>
-        <p style={{ margin: '10px 0 0 0', opacity: 0.8 }}>
-          Öğrenciler için hazırlanmış kaliteli notlar
-        </p>
-      </div>
+    <motion.div
+      style={containerStyle}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        style={headerStyle}
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <div style={headerOverlayStyle}></div>
+        <div style={headerContentStyle}>
+          <motion.h1
+            style={{
+              fontSize: '3.5rem',
+              fontWeight: '800',
+              marginBottom: '15px',
+              background: 'linear-gradient(90deg, #22c55e, #3b82f6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            📚 Notlar
+          </motion.h1>
+          <motion.p
+            style={{ fontSize: '1.2rem', color: '#cbd5e1', maxWidth: '700px', margin: '0 auto' }}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+          >
+            Öğrenciler için hazırlanmış kaliteli notları keşfedin. Aradığınız ders, konu veya sınıf notlarını kolayca bulun.
+          </motion.p>
 
-      {error && (
-        <div style={{
-          backgroundColor: '#fef2f2',
-          color: '#dc2626',
-          padding: '12px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #fecaca'
-        }}>
-          {error}
+          <motion.div
+            style={statsContainerStyle}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.6, staggerChildren: 0.1 }}
+          >
+            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#22c55e' }}>10K+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Not</p>
+            </motion.div>
+            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#3b82f6' }}>5K+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Öğrenci</p>
+            </motion.div>
+            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#f97316' }}>50+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Ders</p>
+            </motion.div>
+            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#ef4444' }}>100%</h3>
+              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Ücretsiz</p>
+            </motion.div>
+          </motion.div>
         </div>
-      )}
+      </motion.div>
 
-      <div style={searchContainerStyle}>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '300px' }}>
+      <motion.div
+        style={searchContainerStyle}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ flexGrow: 1, minWidth: '300px', position: 'relative' }}>
+            <Search 
+              size={20} 
+              style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#cbd5e1' 
+              }} 
+            />
             <input
               type="text"
               placeholder="Not ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={inputStyle}
+              style={{ ...inputStyle, paddingLeft: '50px' }}
             />
           </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={selectStyle}
+          <motion.button
+            style={filterButtonStyle}
+            onClick={() => setShowFilters(!showFilters)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <option value="">Tüm Kategoriler</option>
-            {categories.map(cat => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            style={selectStyle}
-          >
-            <option value="">Tüm Dersler</option>
-            <option value="matematik">Matematik</option>
-            <option value="fizik">Fizik</option>
-            <option value="kimya">Kimya</option>
-            <option value="biyoloji">Biyoloji</option>
-            <option value="turkce">Türkçe</option>
-            <option value="tarih">Tarih</option>
-            <option value="cografya">Coğrafya</option>
-            <option value="felsefe">Felsefe</option>
-            <option value="edebiyat">Edebiyat</option>
-          </select>
-          <select
-            value={selectedGrade}
-            onChange={(e) => setSelectedGrade(e.target.value)}
-            style={selectStyle}
-          >
-            <option value="">Tüm Sınıflar</option>
-            <option value="9">9. Sınıf</option>
-            <option value="10">10. Sınıf</option>
-            <option value="11">11. Sınıf</option>
-            <option value="12">12. Sınıf</option>
-          </select>
+            <Filter size={20} /> Filtreler
+          </motion.button>
         </div>
-        <div style={{ fontSize: '14px', color: '#64748b' }}>
+
+        {showFilters && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={filterOptionsStyle}>
+              <div style={filterOptionGroupStyle}>
+                <label style={filterLabelStyle}>Kategori</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  style={selectStyle}
+                >
+                  <option value="">Tüm Kategoriler</option>
+                  {categories.map(cat => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={filterOptionGroupStyle}>
+                <label style={filterLabelStyle}>Ders</label>
+                <select
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  style={selectStyle}
+                >
+                  <option value="">Tüm Dersler</option>
+                  <option value="matematik">Matematik</option>
+                  <option value="fizik">Fizik</option>
+                  <option value="kimya">Kimya</option>
+                  <option value="biyoloji">Biyoloji</option>
+                  <option value="turkce">Türkçe</option>
+                  <option value="tarih">Tarih</option>
+                  <option value="cografya">Coğrafya</option>
+                  <option value="felsefe">Felsefe</option>
+                  <option value="edebiyat">Edebiyat</option>
+                </select>
+              </div>
+              <div style={filterOptionGroupStyle}>
+                <label style={filterLabelStyle}>Sınıf</label>
+                <select
+                  value={selectedGrade}
+                  onChange={(e) => setSelectedGrade(e.target.value)}
+                  style={selectStyle}
+                >
+                  <option value="">Tüm Sınıflar</option>
+                  <option value="9">9. Sınıf</option>
+                  <option value="10">10. Sınıf</option>
+                  <option value="11">11. Sınıf</option>
+                  <option value="12">12. Sınıf</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <div style={{ fontSize: '14px', color: '#cbd5e1', textAlign: 'center', marginTop: '15px' }}>
           {filteredNotes.length} not bulundu
         </div>
-      </div>
+      </motion.div>
+
+      {error && (
+        <motion.div
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            color: '#fca5a5',
+            padding: '15px 20px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            backdropFilter: 'blur(5px)',
+          }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {error}
+        </motion.div>
+      )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px' }}>
-          <div style={{ fontSize: '18px', color: '#64748b' }}>Notlar yükleniyor...</div>
-        </div>
+        <motion.div
+          style={{ textAlign: 'center', padding: '60px' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div style={{ fontSize: '18px', color: '#cbd5e1' }}>Notlar yükleniyor...</div>
+        </motion.div>
       ) : filteredNotes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px' }}>
-          <div style={{ fontSize: '18px', color: '#64748b' }}>
+        <motion.div
+          style={{
+            textAlign: 'center',
+            padding: '50px',
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <BookOpen size={48} style={{ color: '#64748b', marginBottom: '20px' }} />
+          <h3 style={{ fontSize: '1.8rem', color: '#cbd5e1', marginBottom: '15px' }}>
             {searchTerm || selectedCategory || selectedSubject || selectedGrade 
               ? 'Arama kriterlerinize uygun not bulunamadı' 
               : 'Henüz not eklenmemiş'
             }
-          </div>
-        </div>
+          </h3>
+          <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
+            Filtreleri değiştirmeyi veya daha genel bir arama yapmayı deneyin.
+          </p>
+        </motion.div>
       ) : (
-        <div style={{ display: 'grid', gap: '20px' }}>
+        <motion.div
+          style={gridContainerStyle}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
+        >
           {filteredNotes.map(note => (
             <motion.div
               key={note._id}
               style={noteCardStyle}
-              whileHover={{ 
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                transform: 'translateY(-2px)'
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
               }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}
               transition={{ duration: 0.3 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ 
-                    margin: '0 0 8px 0', 
-                    color: '#1e293b',
-                    fontSize: '20px',
+              <div>
+                <h3 style={{ 
+                  margin: '0 0 12px 0', 
+                  color: 'white',
+                  fontSize: '1.4rem',
+                  fontWeight: '700',
+                  lineHeight: '1.3'
+                }}>
+                  {note.title}
+                </h3>
+                
+                <p style={{ 
+                  margin: '0 0 15px 0', 
+                  color: '#cbd5e1', 
+                  fontSize: '14px',
+                  lineHeight: '1.6'
+                }}>
+                  {note.description}
+                </p>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <span style={{
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    color: '#60a5fa',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    marginRight: '8px'
+                  }}>
+                    📁 {note.category.name}
+                  </span>
+                  <span style={{
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    color: '#4ade80',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
                     fontWeight: '600'
                   }}>
-                    {note.title}
-                  </h3>
-                  
-                  <p style={{ 
-                    margin: '0 0 12px 0', 
-                    color: '#64748b', 
-                    fontSize: '14px',
-                    lineHeight: '1.5'
-                  }}>
-                    {note.description}
-                  </p>
-
-                  <div style={{ marginBottom: '12px' }}>
-                    <span style={{
-                      backgroundColor: '#dbeafe',
-                      color: '#1e40af',
-                      padding: '4px 12px',
-                      borderRadius: '16px',
-                      fontSize: '12px',
-                      fontWeight: '500'
-                    }}>
-                      📁 {note.category.name}
-                    </span>
-                    <span style={{
-                      backgroundColor: '#f0fdf4',
-                      color: '#166534',
-                      padding: '4px 12px',
-                      borderRadius: '16px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      marginLeft: '8px'
-                    }}>
-                      🎓 {note.category.grade}. Sınıf
-                    </span>
-                  </div>
-
-                  {note.tags.length > 0 && (
-                    <div style={{ marginBottom: '12px' }}>
-                      {note.tags.map((tag, index) => (
-                        <span key={index} style={tagStyle}>
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div style={statsStyle}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Eye size={14} />
-                      {note.viewCount} görüntüleme
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Download size={14} />
-                      {note.downloadCount} indirme
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Star size={14} />
-                      {note.rating.toFixed(1)} puan
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <User size={14} />
-                      {note.author.name}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={14} />
-                      {new Date(note.createdAt).toLocaleDateString('tr-TR')}
-                    </span>
-                  </div>
+                    🎓 {note.category.grade}. Sınıf
+                  </span>
                 </div>
 
-                <div style={{ marginLeft: '20px' }}>
-                  <button
-                    style={buttonStyle}
-                    onClick={() => handleDownload(note._id, note.googleDriveUrl)}
-                  >
-                    <Download size={16} />
-                    İndir
-                  </button>
+                {note.tags.length > 0 && (
+                  <div style={{ marginBottom: '15px' }}>
+                    {note.tags.map((tag, index) => (
+                      <span key={index} style={tagStyle}>
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap',
+                  gap: '15px', 
+                  fontSize: '13px', 
+                  color: '#94a3b8',
+                  marginBottom: '20px'
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Eye size={14} style={statIconStyle} />
+                    {note.viewCount}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Download size={14} style={statIconStyle} />
+                    {note.downloadCount}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Star size={14} style={statIconStyle} />
+                    {note.rating.toFixed(1)}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <User size={14} style={statIconStyle} />
+                    {note.author.name}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Clock size={14} style={statIconStyle} />
+                    {new Date(note.createdAt).toLocaleDateString('tr-TR')}
+                  </span>
                 </div>
               </div>
+
+              <motion.button
+                style={downloadButtonStyle}
+                onClick={() => handleDownload(note._id, note.googleDriveUrl)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Download size={16} />
+                İndir
+              </motion.button>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
