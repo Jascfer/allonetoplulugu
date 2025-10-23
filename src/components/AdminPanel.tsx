@@ -139,7 +139,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleDeleteNote = async (id: string) => {
-    if (!confirm('Bu notu silmek istediğinizden emin misiniz?')) return;
+    if (!window.confirm('Bu notu silmek istediğinizden emin misiniz?')) return;
     
     try {
       await apiService.request(`/api/notes/${id}`, { method: 'DELETE' });
@@ -150,7 +150,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
+    if (!window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
     
     try {
       await apiService.request(`/api/categories/${id}`, { method: 'DELETE' });
