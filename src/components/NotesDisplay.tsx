@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User, ArrowRight, Search, Filter, Link } from 'lucide-react';
+import { Download, Eye, Star, Clock, User } from 'lucide-react';
 import apiService from '../services/api';
 
 interface Category {
@@ -40,9 +40,9 @@ const NotesDisplay: React.FC = () => {
   useEffect(() => {
     loadNotes();
     loadCategories();
-  }, [selectedCategory, selectedSubject, selectedGrade]);
+  }, [loadNotes]);
 
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -58,7 +58,7 @@ const NotesDisplay: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm]);
 
   const loadCategories = async () => {
     try {

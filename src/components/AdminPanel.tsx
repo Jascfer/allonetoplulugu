@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Eye, Download, Link, Tag, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import apiService from '../services/api';
 
 interface Category {
@@ -58,11 +57,7 @@ const AdminPanel: React.FC = () => {
     grade: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'notes') {
@@ -77,7 +72,11 @@ const AdminPanel: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleNoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
