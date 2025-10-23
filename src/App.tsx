@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import SubjectCategories from './components/SubjectCategories';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   const appStyle = {
@@ -83,83 +84,85 @@ function App() {
   };
 
   return (
-    <div style={appStyle}>
-      <Header />
-      <main>
-        <Hero />
-        <div id="notes">
-          <SubjectCategories />
-        </div>
-        <div id="daily-questions">
-          <DailyQuestion />
-        </div>
-        <div id="community">
-          <RecentNotes />
-        </div>
-      </main>
-      
-      {/* Footer */}
-      <motion.footer 
-        style={footerStyle}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-      >
-        <div style={footerContainerStyle}>
-          <div style={footerContentStyle}>
-            <div style={footerSectionStyle}>
-              <h3 style={footerTitleStyle}>All One Topluluğu</h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
-                Türkiye'nin en büyük not paylaşım platformu. Öğrencilerin başarısı için tasarlandı.
-              </p>
-              <div style={socialLinksStyle}>
-                <a href="https://facebook.com" style={socialLinkStyle}>📘</a>
-                <a href="https://instagram.com" style={socialLinkStyle}>📷</a>
-                <a href="https://twitter.com" style={socialLinkStyle}>🐦</a>
-                <a href="https://youtube.com" style={socialLinkStyle}>📺</a>
+    <AuthProvider>
+      <div style={appStyle}>
+        <Header />
+        <main>
+          <Hero />
+          <div id="notes">
+            <SubjectCategories />
+          </div>
+          <div id="daily-questions">
+            <DailyQuestion />
+          </div>
+          <div id="community">
+            <RecentNotes />
+          </div>
+        </main>
+        
+        {/* Footer */}
+        <motion.footer 
+          style={footerStyle}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <div style={footerContainerStyle}>
+            <div style={footerContentStyle}>
+              <div style={footerSectionStyle}>
+                <h3 style={footerTitleStyle}>All One Topluluğu</h3>
+                <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
+                  Türkiye'nin en büyük not paylaşım platformu. Öğrencilerin başarısı için tasarlandı.
+                </p>
+                <div style={socialLinksStyle}>
+                  <a href="https://facebook.com" style={socialLinkStyle}>📘</a>
+                  <a href="https://instagram.com" style={socialLinkStyle}>📷</a>
+                  <a href="https://twitter.com" style={socialLinkStyle}>🐦</a>
+                  <a href="https://youtube.com" style={socialLinkStyle}>📺</a>
+                </div>
+              </div>
+
+              <div style={footerSectionStyle}>
+                <h3 style={footerTitleStyle}>Dersler</h3>
+                <a href="/matematik" style={footerLinkStyle}>Matematik</a>
+                <a href="/fizik" style={footerLinkStyle}>Fizik</a>
+                <a href="/kimya" style={footerLinkStyle}>Kimya</a>
+                <a href="/biyoloji" style={footerLinkStyle}>Biyoloji</a>
+                <a href="/turkce" style={footerLinkStyle}>Türkçe</a>
+              </div>
+
+              <div style={footerSectionStyle}>
+                <h3 style={footerTitleStyle}>Kaynaklar</h3>
+                <a href="/upload" style={footerLinkStyle}>Not Yükle</a>
+                <a href="/daily-questions" style={footerLinkStyle}>Günlük Sorular</a>
+                <a href="/community" style={footerLinkStyle}>Topluluk</a>
+                <a href="/help" style={footerLinkStyle}>Yardım</a>
+                <a href="/contact" style={footerLinkStyle}>İletişim</a>
+              </div>
+
+              <div style={footerSectionStyle}>
+                <h3 style={footerTitleStyle}>Destek</h3>
+                <a href="/faq" style={footerLinkStyle}>SSS</a>
+                <a href="/terms" style={footerLinkStyle}>Kullanım Şartları</a>
+                <a href="/privacy" style={footerLinkStyle}>Gizlilik Politikası</a>
+                <a href="/cookies" style={footerLinkStyle}>Çerez Politikası</a>
               </div>
             </div>
 
-            <div style={footerSectionStyle}>
-              <h3 style={footerTitleStyle}>Dersler</h3>
-              <a href="/matematik" style={footerLinkStyle}>Matematik</a>
-              <a href="/fizik" style={footerLinkStyle}>Fizik</a>
-              <a href="/kimya" style={footerLinkStyle}>Kimya</a>
-              <a href="/biyoloji" style={footerLinkStyle}>Biyoloji</a>
-              <a href="/turkce" style={footerLinkStyle}>Türkçe</a>
-            </div>
-
-            <div style={footerSectionStyle}>
-              <h3 style={footerTitleStyle}>Kaynaklar</h3>
-              <a href="/upload" style={footerLinkStyle}>Not Yükle</a>
-              <a href="/daily-questions" style={footerLinkStyle}>Günlük Sorular</a>
-              <a href="/community" style={footerLinkStyle}>Topluluk</a>
-              <a href="/help" style={footerLinkStyle}>Yardım</a>
-              <a href="/contact" style={footerLinkStyle}>İletişim</a>
-            </div>
-
-            <div style={footerSectionStyle}>
-              <h3 style={footerTitleStyle}>Destek</h3>
-              <a href="/faq" style={footerLinkStyle}>SSS</a>
-              <a href="/terms" style={footerLinkStyle}>Kullanım Şartları</a>
-              <a href="/privacy" style={footerLinkStyle}>Gizlilik Politikası</a>
-              <a href="/cookies" style={footerLinkStyle}>Çerez Politikası</a>
+            <div style={{
+              borderTop: '1px solid rgba(51, 65, 85, 0.3)',
+              paddingTop: '20px',
+              textAlign: 'center'
+            }}>
+              <p style={footerTextStyle}>
+                © 2024 All One Topluluğu. Tüm hakları saklıdır.
+              </p>
             </div>
           </div>
-
-          <div style={{
-            borderTop: '1px solid rgba(51, 65, 85, 0.3)',
-            paddingTop: '20px',
-            textAlign: 'center'
-          }}>
-            <p style={footerTextStyle}>
-              © 2024 All One Topluluğu. Tüm hakları saklıdır.
-            </p>
-          </div>
-        </div>
-      </motion.footer>
-    </div>
+        </motion.footer>
+      </div>
+    </AuthProvider>
   );
 }
 

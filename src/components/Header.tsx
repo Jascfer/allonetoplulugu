@@ -1,11 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import Logo from './Logo';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from './auth/AuthModal';
+import ProfileModal from './auth/ProfileModal';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleCloseAuthModal = () => setShowAuthModal(false);
+    const handleCloseProfileModal = () => setShowProfileModal(false);
+    
+    window.addEventListener('closeAuthModal', handleCloseAuthModal);
+    window.addEventListener('closeProfileModal', handleCloseProfileModal);
+    
+    return () => {
+      window.removeEventListener('closeAuthModal', handleCloseAuthModal);
+      window.removeEventListener('closeProfileModal', handleCloseProfileModal);
+    };
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -15,9 +47,12 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleLogin = () => {
-    // Login functionality - can be expanded later
-    alert('Giriş yapma özelliği yakında eklenecek!');
+  const handleAuthClick = () => {
+    if (isAuthenticated) {
+      setShowProfileModal(true);
+    } else {
+      setShowAuthModal(true);
+    }
   };
 
   const headerStyle = {
@@ -57,8 +92,10 @@ const Header: React.FC = () => {
     cursor: 'pointer',
   });
 
-  const loginButtonStyle = {
-    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+  const authButtonStyle = {
+    background: isAuthenticated 
+      ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' 
+      : 'linear-gradient(135deg, #22c55e, #16a34a)',
     color: 'white',
     padding: '12px 24px',
     borderRadius: '12px',
@@ -69,7 +106,9 @@ const Header: React.FC = () => {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)',
+    boxShadow: isAuthenticated 
+      ? '0 4px 15px rgba(59, 130, 246, 0.3)' 
+      : '0 4px 15px rgba(34, 197, 94, 0.3)',
     transition: 'all 0.3s ease',
   };
 
@@ -99,7 +138,7 @@ const Header: React.FC = () => {
         </motion.div>
 
         {/* Desktop Navigation */}
-        <nav style={{ ...navStyle, display: window.innerWidth >= 768 ? 'flex' : 'none' }}>
+        <nav style={{ ...navStyle, display: !isMobile ? 'flex' : 'none' }}>
           <motion.span
             style={navLinkStyle(activeSection === 'notes')}
             whileHover={{ scale: 1.05 }}
@@ -126,23 +165,25 @@ const Header: React.FC = () => {
           </motion.span>
         </nav>
 
-        {/* Desktop Login Button */}
+        {/* Desktop Auth Button */}
         <motion.button 
-          style={{ ...loginButtonStyle, display: window.innerWidth >= 768 ? 'flex' : 'none' }}
+          style={{ ...authButtonStyle, display: !isMobile ? 'flex' : 'none' }}
           whileHover={{ 
             scale: 1.05,
-            boxShadow: '0 6px 20px rgba(34, 197, 94, 0.4)'
+            boxShadow: isAuthenticated 
+              ? '0 6px 20px rgba(59, 130, 246, 0.4)' 
+              : '0 6px 20px rgba(34, 197, 94, 0.4)'
           }}
           whileTap={{ scale: 0.95 }}
-          onClick={handleLogin}
+          onClick={handleAuthClick}
         >
-          <User size={16} />
-          <span>Giriş Yap</span>
+          {isAuthenticated ? <User size={16} /> : <User size={16} />}
+          <span>{isAuthenticated ? user?.name : 'Giriş Yap'}</span>
         </motion.button>
 
         {/* Mobile Menu Button */}
         <motion.button
-          style={{ ...mobileMenuButtonStyle, display: window.innerWidth < 768 ? 'block' : 'none' }}
+          style={{ ...mobileMenuButtonStyle, display: isMobile ? 'block' : 'none' }}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           whileTap={{ scale: 0.95 }}
         >
@@ -197,15 +238,21 @@ const Header: React.FC = () => {
               Topluluk
             </span>
             <button 
-              style={{ ...loginButtonStyle, width: '100%', justifyContent: 'center', marginTop: '8px' }}
-              onClick={handleLogin}
+              style={{ ...authButtonStyle, width: '100%', justifyContent: 'center', marginTop: '8px' }}
+              onClick={handleAuthClick}
             >
-              <User size={16} />
-              <span>Giriş Yap</span>
+              {isAuthenticated ? <User size={16} /> : <User size={16} />}
+              <span>{isAuthenticated ? user?.name : 'Giriş Yap'}</span>
             </button>
           </nav>
         </motion.div>
       )}
+
+      {/* Auth Modal */}
+      {showAuthModal && <AuthModal />}
+
+      {/* Profile Modal */}
+      {showProfileModal && <ProfileModal />}
     </motion.header>
   );
 };
