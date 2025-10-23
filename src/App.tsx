@@ -5,6 +5,8 @@ import Hero from './components/Hero';
 import SubjectCategories from './components/SubjectCategories';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
+import NotesDisplay from './components/NotesDisplay';
+import AdminPanel from './components/AdminPanel';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
@@ -90,11 +92,17 @@ function App() {
         <main>
           <Hero />
           <div id="notes">
-            <SubjectCategories />
+            <NotesDisplay />
           </div>
+          
+          <div id="admin">
+            <AdminPanel />
+          </div>
+          
           <div id="daily-questions">
             <DailyQuestion />
           </div>
+          
           <div id="community">
             <RecentNotes />
           </div>

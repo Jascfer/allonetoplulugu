@@ -55,6 +55,8 @@ const Header: React.FC = () => {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+
   const headerStyle = {
     position: 'fixed' as const,
     top: 0,
@@ -147,23 +149,36 @@ const Header: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('notes')}
           >
-            Notlar
+            📚 Notlar
           </motion.span>
+          
+          {isAdmin && (
+            <motion.span
+              style={navLinkStyle(activeSection === 'admin')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => scrollToSection('admin')}
+            >
+              ⚙️ Admin
+            </motion.span>
+          )}
+          
           <motion.span
             style={navLinkStyle(activeSection === 'daily-questions')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('daily-questions')}
           >
-            Günlük Sorular
+            ❓ Günlük Sorular
           </motion.span>
+          
           <motion.span
             style={navLinkStyle(activeSection === 'community')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('community')}
           >
-            Topluluk
+            👥 Topluluk
           </motion.span>
         </nav>
 

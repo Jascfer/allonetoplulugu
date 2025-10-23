@@ -84,9 +84,35 @@ class ApiService {
     return this.request('/api/auth/me');
   }
 
-  // Notes API
-  async getNotes() {
-    return this.request('/api/notes');
+  // Categories API
+  async getCategories() {
+    return this.request('/api/categories');
+  }
+
+  async createCategory(categoryData) {
+    return this.request('/api/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async updateCategory(id, categoryData) {
+    return this.request(`/api/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async deleteCategory(id) {
+    return this.request(`/api/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Notes API - Updated
+  async getNotes(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/api/notes${queryString ? `?${queryString}` : ''}`);
   }
 
   async createNote(noteData) {
@@ -97,16 +123,21 @@ class ApiService {
   }
 
   async updateNote(id, noteData) {
-    return this.request('/api/notes', {
+    return this.request(`/api/notes/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ id, ...noteData }),
+      body: JSON.stringify(noteData),
     });
   }
 
-  async deleteNote(noteId) {
-    return this.request('/api/notes', {
+  async deleteNote(id) {
+    return this.request(`/api/notes/${id}`, {
       method: 'DELETE',
-      body: JSON.stringify({ noteId }),
+    });
+  }
+
+  async downloadNote(id) {
+    return this.request(`/api/notes/${id}/download`, {
+      method: 'PUT',
     });
   }
 
