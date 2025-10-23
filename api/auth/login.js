@@ -1,11 +1,9 @@
-// api/auth/login.js - Kullanıcı girişi
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { MongoClient } from 'mongodb';
+const { MongoClient } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB;
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 let cachedClient = null;
 let cachedDb = null;
@@ -17,7 +15,7 @@ async function connectToDatabase() {
 
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
-  const db = client.db(MONGODB_DB);
+  const db = client.db('allone');
 
   cachedClient = client;
   cachedDb = db;
@@ -27,26 +25,26 @@ async function connectToDatabase() {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password required' });
+      return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const { client, db } = await connectToDatabase();
+    const { db } = await connectToDatabase();
     const user = await db.collection('users').findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
@@ -61,14 +59,14 @@ export default async function handler(req, res) {
         token,
         user: {
           id: user._id,
-          email: user.email,
           name: user.name,
-          avatar: user.avatar
+          email: user.email,
+          role: user.role || 'user'
         }
       }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
