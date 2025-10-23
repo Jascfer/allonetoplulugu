@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Settings, LogOut, Edit3, Shield } from 'lucide-react';
+import { Settings, LogOut, Edit3, Shield } from 'lucide-react';
 
 const ProfileModal: React.FC = () => {
   const { user, logout } = useAuth();

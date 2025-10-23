@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';

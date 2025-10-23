@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../contexts/AuthContext';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
