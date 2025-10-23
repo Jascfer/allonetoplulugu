@@ -46,16 +46,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   };
 
   const containerStyle = {
-    background: 'rgba(15, 23, 42, 0.8)',
+    background: 'rgba(15, 23, 42, 0.95)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(51, 65, 85, 0.3)',
     borderRadius: '20px',
     padding: window.innerWidth < 768 ? '24px' : '40px',
     maxWidth: '400px',
     width: '100%',
-    margin: '0 auto',
-    maxHeight: '90vh',
+    margin: '20px auto',
+    maxHeight: '80vh',
     overflowY: 'auto' as const,
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
   };
 
   const titleStyle = {

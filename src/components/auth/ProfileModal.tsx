@@ -23,20 +23,22 @@ const ProfileModal: React.FC = () => {
     zIndex: 1000,
     padding: '20px',
     overflowY: 'auto' as const,
+    minHeight: '100vh',
   };
 
   const modalStyle = {
-    background: 'rgba(15, 23, 42, 0.9)',
+    background: 'rgba(15, 23, 42, 0.95)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(51, 65, 85, 0.3)',
     borderRadius: '20px',
     padding: window.innerWidth < 768 ? '24px' : '40px',
     maxWidth: '500px',
     width: '100%',
-    margin: '0 auto',
+    margin: '20px auto',
     position: 'relative' as const,
-    maxHeight: '90vh',
+    maxHeight: '80vh',
     overflowY: 'auto' as const,
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
   };
 
   const closeButtonStyle = {

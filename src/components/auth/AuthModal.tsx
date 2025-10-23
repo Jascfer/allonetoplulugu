@@ -20,6 +20,7 @@ const AuthModal: React.FC = () => {
     zIndex: 1000,
     padding: '20px',
     overflowY: 'auto' as const,
+    minHeight: '100vh',
   };
 
   const closeButtonStyle = {
