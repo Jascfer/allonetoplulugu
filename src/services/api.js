@@ -72,6 +72,7 @@ class ApiService {
       id: 'mock-user-id',
       name: 'Test User',
       email: email,
+      avatar: 'https://via.placeholder.com/150/22c55e/ffffff?text=T',
       role: 'user'
     };
     
@@ -95,6 +96,7 @@ class ApiService {
       id: 'mock-user-id-' + Date.now(),
       name: name,
       email: email,
+      avatar: 'https://via.placeholder.com/150/22c55e/ffffff?text=' + name.charAt(0).toUpperCase(),
       role: 'user'
     };
     
