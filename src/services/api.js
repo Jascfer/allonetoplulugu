@@ -1,5 +1,5 @@
 // services/api.js - API servisleri
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.yourdomain.com' : 'http://localhost:5000');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.allonetoplulugu.tr' : 'http://localhost:5000');
 
 class ApiService {
   constructor() {
