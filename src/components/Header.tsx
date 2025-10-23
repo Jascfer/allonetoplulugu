@@ -180,7 +180,7 @@ const Header: React.FC = () => {
           onClick={handleAuthClick}
         >
           <User size={16} />
-          <span>{isAuthenticated ? (user?.name?.length > 10 ? user.name.substring(0, 10) + '...' : user?.name) : 'Giriş Yap'}</span>
+          <span>{isAuthenticated ? (user?.name && user.name.length > 10 ? user.name.substring(0, 10) + '...' : user?.name) : 'Giriş Yap'}</span>
         </motion.button>
 
         {/* Mobile Menu Button */}
