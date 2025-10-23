@@ -33,7 +33,12 @@ app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'https://allonetoplulugu.tr',
+    'https://www.allonetoplulugu.tr',
+    'https://allonetoplulugu-xxxxx.vercel.app'
+  ],
   credentials: true
 }));
 
