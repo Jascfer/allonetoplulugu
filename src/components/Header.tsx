@@ -97,19 +97,21 @@ const Header: React.FC = () => {
       ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' 
       : 'linear-gradient(135deg, #22c55e, #16a34a)',
     color: 'white',
-    padding: '12px 24px',
+    padding: isMobile ? '10px 16px' : '12px 24px',
     borderRadius: '12px',
     border: 'none',
     fontWeight: '600',
-    fontSize: '14px',
+    fontSize: isMobile ? '13px' : '14px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
     boxShadow: isAuthenticated 
       ? '0 4px 15px rgba(59, 130, 246, 0.3)' 
       : '0 4px 15px rgba(34, 197, 94, 0.3)',
     transition: 'all 0.3s ease',
+    minWidth: isMobile ? 'auto' : '120px',
+    justifyContent: 'center',
   };
 
   const mobileMenuButtonStyle = {
@@ -177,8 +179,8 @@ const Header: React.FC = () => {
           whileTap={{ scale: 0.95 }}
           onClick={handleAuthClick}
         >
-          {isAuthenticated ? <User size={16} /> : <User size={16} />}
-          <span>{isAuthenticated ? user?.name : 'Giriş Yap'}</span>
+          <User size={16} />
+          <span>{isAuthenticated ? (user?.name?.length > 10 ? user.name.substring(0, 10) + '...' : user?.name) : 'Giriş Yap'}</span>
         </motion.button>
 
         {/* Mobile Menu Button */}
@@ -241,7 +243,7 @@ const Header: React.FC = () => {
               style={{ ...authButtonStyle, width: '100%', justifyContent: 'center', marginTop: '8px' }}
               onClick={handleAuthClick}
             >
-              {isAuthenticated ? <User size={16} /> : <User size={16} />}
+              <User size={16} />
               <span>{isAuthenticated ? user?.name : 'Giriş Yap'}</span>
             </button>
           </nav>

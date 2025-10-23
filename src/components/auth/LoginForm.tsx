@@ -35,10 +35,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(51, 65, 85, 0.3)',
     borderRadius: '20px',
-    padding: '40px',
+    padding: window.innerWidth < 768 ? '24px' : '40px',
     maxWidth: '400px',
     width: '100%',
     margin: '0 auto',
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
   };
 
   const titleStyle = {

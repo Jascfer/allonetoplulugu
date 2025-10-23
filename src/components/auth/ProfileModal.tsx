@@ -22,6 +22,7 @@ const ProfileModal: React.FC = () => {
     justifyContent: 'center',
     zIndex: 1000,
     padding: '20px',
+    overflowY: 'auto' as const,
   };
 
   const modalStyle = {
@@ -29,11 +30,13 @@ const ProfileModal: React.FC = () => {
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(51, 65, 85, 0.3)',
     borderRadius: '20px',
-    padding: '40px',
+    padding: window.innerWidth < 768 ? '24px' : '40px',
     maxWidth: '500px',
     width: '100%',
     margin: '0 auto',
     position: 'relative' as const,
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
   };
 
   const closeButtonStyle = {

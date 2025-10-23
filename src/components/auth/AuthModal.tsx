@@ -19,6 +19,7 @@ const AuthModal: React.FC = () => {
     justifyContent: 'center',
     zIndex: 1000,
     padding: '20px',
+    overflowY: 'auto' as const,
   };
 
   const closeButtonStyle = {
