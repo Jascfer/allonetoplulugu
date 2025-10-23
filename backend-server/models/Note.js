@@ -12,27 +12,20 @@ const noteSchema = new mongoose.Schema({
     required: [true, 'Description is required'],
     maxlength: [500, 'Description cannot be more than 500 characters']
   },
-  subject: {
-    type: String,
-    required: [true, 'Subject is required'],
-    enum: ['matematik', 'fizik', 'kimya', 'biyoloji', 'turkce', 'tarih', 'cografya', 'felsefe', 'edebiyat']
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: [true, 'Category is required']
   },
-  grade: {
+  googleDriveUrl: {
     type: String,
-    required: [true, 'Grade is required'],
-    enum: ['9', '10', '11', '12']
-  },
-  fileUrl: {
-    type: String,
-    required: [true, 'File URL is required']
-  },
-  fileName: {
-    type: String,
-    required: [true, 'File name is required']
-  },
-  fileSize: {
-    type: Number,
-    required: [true, 'File size is required']
+    required: [true, 'Google Drive URL is required'],
+    validate: {
+      validator: function(v) {
+        return /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view/.test(v);
+      },
+      message: 'Please provide a valid Google Drive URL'
+    }
   },
   downloadCount: {
     type: Number,
@@ -70,7 +63,7 @@ const noteSchema = new mongoose.Schema({
 });
 
 // Index for better search performance
-noteSchema.index({ subject: 1, grade: 1 });
+noteSchema.index({ category: 1 });
 noteSchema.index({ title: 'text', description: 'text' });
 noteSchema.index({ createdAt: -1 });
 

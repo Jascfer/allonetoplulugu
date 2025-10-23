@@ -8,16 +8,21 @@ const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
+const createAdminUser = require('./scripts/createAdmin');
 
 // Routes
 const authRoutes = require('./routes/auth');
 const notesRoutes = require('./routes/notes');
+const categoriesRoutes = require('./routes/categories');
 const uploadRoutes = require('./routes/upload');
 
 const app = express();
 
 // Database connection
-connectDB();
+connectDB().then(() => {
+  // Create admin user after database connection
+  createAdminUser();
+});
 
 // Security middleware
 app.use(helmet());
@@ -55,6 +60,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
+app.use('/api/categories', categoriesRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
