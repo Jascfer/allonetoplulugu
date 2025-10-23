@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X, User } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';
@@ -8,10 +9,10 @@ import ProfileModal from './auth/ProfileModal';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
   const { user, isAuthenticated } = useAuth();
 
@@ -43,7 +44,6 @@ const Header: React.FC = () => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setActiveSection(sectionId);
     }
   };
 
@@ -143,43 +143,27 @@ const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <nav style={{ ...navStyle, display: !isMobile ? 'flex' : 'none' }}>
-          <motion.span
-            style={navLinkStyle(activeSection === 'notes')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('notes')}
-          >
+          <Link to="/" style={navLinkStyle(location.pathname === '/')}>
+            Ana Sayfa
+          </Link>
+          
+          <Link to="/notes" style={navLinkStyle(location.pathname === '/notes')}>
             Notlar
-          </motion.span>
+          </Link>
           
           {isAdmin && (
-            <motion.span
-              style={navLinkStyle(activeSection === 'admin')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection('admin')}
-            >
+            <Link to="/admin" style={navLinkStyle(location.pathname === '/admin')}>
               Admin Panel
-            </motion.span>
+            </Link>
           )}
           
-          <motion.span
-            style={navLinkStyle(activeSection === 'daily-questions')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('daily-questions')}
-          >
+          <Link to="/daily-questions" style={navLinkStyle(location.pathname === '/daily-questions')}>
             Günlük Sorular
-          </motion.span>
+          </Link>
           
-          <motion.span
-            style={navLinkStyle(activeSection === 'community')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('community')}
-          >
+          <Link to="/community" style={navLinkStyle(location.pathname === '/community')}>
             Topluluk
-          </motion.span>
+          </Link>
         </nav>
 
         {/* Desktop Auth Button */}

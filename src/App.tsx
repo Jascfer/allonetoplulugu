@@ -1,10 +1,11 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './components/Header';
-import Hero from './components/Hero';
+import HomePage from './components/HomePage';
+import NotesPage from './components/NotesPage';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
-import NotesPage from './components/NotesPage';
 import AdminPanel from './components/AdminPanel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -86,24 +87,13 @@ function AppContent() {
     <div style={appStyle}>
       <Header />
       <main>
-        <Hero />
-        <div id="notes">
-          <NotesPage />
-        </div>
-        
-        {isAdmin && (
-          <div id="admin">
-            <AdminPanel />
-          </div>
-        )}
-        
-        <div id="daily-questions">
-          <DailyQuestion />
-        </div>
-        
-        <div id="community">
-          <RecentNotes />
-        </div>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/daily-questions" element={<DailyQuestion />} />
+          <Route path="/community" element={<RecentNotes />} />
+          {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+        </Routes>
       </main>
       
       {/* Footer */}
@@ -140,7 +130,7 @@ function AppContent() {
 
             <div style={footerSectionStyle}>
               <h3 style={footerTitleStyle}>Kaynaklar</h3>
-              <a href="/upload" style={footerLinkStyle}>Not Yükle</a>
+              <a href="/notes" style={footerLinkStyle}>Notlar</a>
               <a href="/daily-questions" style={footerLinkStyle}>Günlük Sorular</a>
               <a href="/community" style={footerLinkStyle}>Topluluk</a>
               <a href="/help" style={footerLinkStyle}>Yardım</a>
@@ -174,7 +164,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <AppContent />
+      </Router>
     </AuthProvider>
   );
 }
