@@ -4,7 +4,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
-import NotesDisplay from './components/NotesDisplay';
+import NotesPage from './components/NotesPage';
 import AdminPanel from './components/AdminPanel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -88,7 +88,7 @@ function AppContent() {
       <main>
         <Hero />
         <div id="notes">
-          <NotesDisplay />
+          <NotesPage />
         </div>
         
         {isAdmin && (
