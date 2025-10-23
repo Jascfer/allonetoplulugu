@@ -37,11 +37,6 @@ const NotesDisplay: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('');
 
-  useEffect(() => {
-    loadNotes();
-    loadCategories();
-  }, [loadNotes]);
-
   const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
@@ -68,6 +63,11 @@ const NotesDisplay: React.FC = () => {
       console.error('Categories load error:', error);
     }
   };
+
+  useEffect(() => {
+    loadNotes();
+    loadCategories();
+  }, [loadNotes]);
 
   const handleDownload = async (noteId: string, googleDriveUrl: string) => {
     try {
