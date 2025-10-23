@@ -18,6 +18,8 @@ class ApiService {
 
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    console.log('API Request:', url, options); // Debug log
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -29,6 +31,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      console.log('API Response:', response.status, response.statusText); // Debug log
       
       // Response'un JSON olup olmadığını kontrol et
       const contentType = response.headers.get('content-type');
