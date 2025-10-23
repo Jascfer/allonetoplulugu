@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import SubjectCategories from './components/SubjectCategories';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
 import NotesDisplay from './components/NotesDisplay';
