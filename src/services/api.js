@@ -62,19 +62,51 @@ class ApiService {
     }
   }
 
-  // Auth API
+  // Auth API - Mock implementation for now
   async login(email, password) {
-    return this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock successful login
+    const mockUser = {
+      id: 'mock-user-id',
+      name: 'Test User',
+      email: email,
+      role: 'user'
+    };
+    
+    const mockToken = 'mock-jwt-token-' + Date.now();
+    
+    return {
+      success: true,
+      data: {
+        token: mockToken,
+        user: mockUser
+      }
+    };
   }
 
   async register(name, email, password) {
-    return this.request('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ name, email, password }),
-    });
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock successful registration
+    const mockUser = {
+      id: 'mock-user-id-' + Date.now(),
+      name: name,
+      email: email,
+      role: 'user'
+    };
+    
+    const mockToken = 'mock-jwt-token-' + Date.now();
+    
+    return {
+      success: true,
+      data: {
+        token: mockToken,
+        user: mockUser
+      }
+    };
   }
 
   // Notes API
