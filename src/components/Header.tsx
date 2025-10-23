@@ -40,13 +40,6 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleAuthClick = () => {
     if (isAuthenticated) {
       setShowProfileModal(true);
@@ -63,7 +56,7 @@ const Header: React.FC = () => {
     left: 0,
     right: 0,
     zIndex: 1000,
-    background: 'rgba(15, 23, 42, 0.8)',
+    background: 'rgba(15, 23, 42, 0.95)',
     backdropFilter: 'blur(20px)',
     borderBottom: '1px solid rgba(51, 65, 85, 0.3)',
     padding: '16px 0',
@@ -169,10 +162,10 @@ const Header: React.FC = () => {
         {/* Desktop Auth Button */}
         <motion.button 
           style={{ ...authButtonStyle, display: !isMobile ? 'flex' : 'none' }}
-          whileHover={{ 
+          whileHover={{
             scale: 1.05,
-            boxShadow: isAuthenticated 
-              ? '0 6px 20px rgba(59, 130, 246, 0.4)' 
+            boxShadow: isAuthenticated
+              ? '0 6px 20px rgba(59, 130, 246, 0.4)'
               : '0 6px 20px rgba(34, 197, 94, 0.4)'
           }}
           whileTap={{ scale: 0.95 }}
@@ -183,13 +176,12 @@ const Header: React.FC = () => {
         </motion.button>
 
         {/* Mobile Menu Button */}
-        <motion.button
+        <button
           style={{ ...mobileMenuButtonStyle, display: isMobile ? 'block' : 'none' }}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          whileTap={{ scale: 0.95 }}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </motion.button>
+        </button>
       </div>
 
       {/* Mobile Menu */}
@@ -200,10 +192,10 @@ const Header: React.FC = () => {
             top: '100%',
             left: 0,
             right: 0,
-            background: 'rgba(15, 23, 42, 0.95)',
+            background: 'rgba(15, 23, 42, 0.98)',
             backdropFilter: 'blur(20px)',
             borderTop: '1px solid rgba(51, 65, 85, 0.3)',
-            padding: '24px',
+            padding: '20px 24px',
           }}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,48 +203,72 @@ const Header: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'notes'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('notes');
-                setIsMobileMenuOpen(false);
-              }}
+            <Link 
+              to="/"
+              style={{ ...navLinkStyle(location.pathname === '/'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Ana Sayfa
+            </Link>
+            
+            <Link 
+              to="/notes"
+              style={{ ...navLinkStyle(location.pathname === '/notes'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Notlar
-            </span>
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'daily-questions'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('daily-questions');
-                setIsMobileMenuOpen(false);
-              }}
+            </Link>
+            
+            {isAdmin && (
+              <Link 
+                to="/admin"
+                style={{ ...navLinkStyle(location.pathname === '/admin'), padding: '12px 0' }}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Admin Panel
+              </Link>
+            )}
+            
+            <Link 
+              to="/daily-questions"
+              style={{ ...navLinkStyle(location.pathname === '/daily-questions'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Günlük Sorular
-            </span>
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'community'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('community');
-                setIsMobileMenuOpen(false);
-              }}
+            </Link>
+            
+            <Link 
+              to="/community"
+              style={{ ...navLinkStyle(location.pathname === '/community'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Topluluk
-            </span>
-            <button 
-              style={{ ...authButtonStyle, width: '100%', justifyContent: 'center', marginTop: '8px' }}
-              onClick={handleAuthClick}
-            >
-              <User size={16} />
-              <span>{isAuthenticated ? user?.name : 'Giriş Yap'}</span>
-            </button>
+            </Link>
           </nav>
+
+          {/* Mobile Auth Button */}
+          <motion.button 
+            style={{ ...authButtonStyle, marginTop: '20px', width: '100%' }}
+            whileHover={{
+              scale: 1.02,
+              boxShadow: isAuthenticated
+                ? '0 6px 20px rgba(59, 130, 246, 0.4)'
+                : '0 6px 20px rgba(34, 197, 94, 0.4)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              handleAuthClick();
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <User size={16} />
+            <span>{isAuthenticated ? (user?.name && user.name.length > 10 ? user.name.substring(0, 10) + '...' : user?.name) : 'Giriş Yap'}</span>
+          </motion.button>
         </motion.div>
       )}
 
-      {/* Auth Modal */}
+      {/* Modals */}
       {showAuthModal && <AuthModal />}
-
-      {/* Profile Modal */}
       {showProfileModal && <ProfileModal />}
     </motion.header>
   );
