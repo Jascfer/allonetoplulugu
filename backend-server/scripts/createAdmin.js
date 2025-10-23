@@ -9,6 +9,8 @@ const createAdminUser = async () => {
     
     if (existingAdmin) {
       console.log('✅ Admin user already exists');
+      console.log('📧 Email: admin@allonetoplulugu.tr');
+      console.log('🔑 Password: Admin123!');
       return;
     }
 
@@ -32,5 +34,17 @@ const createAdminUser = async () => {
     console.error('❌ Error creating admin user:', error);
   }
 };
+
+// If this script is run directly
+if (require.main === module) {
+  require('dotenv').config();
+  const connectDB = require('../config/database');
+  
+  connectDB().then(() => {
+    createAdminUser().then(() => {
+      process.exit(0);
+    });
+  });
+}
 
 module.exports = createAdminUser;
