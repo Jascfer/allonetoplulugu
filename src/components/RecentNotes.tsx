@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User, FileText, ArrowRight } from 'lucide-react';
+import { Download, Eye, Star, Clock, User, ArrowRight } from 'lucide-react';
 
 interface Note {
   id: number;
@@ -203,11 +203,6 @@ const RecentNotes: React.FC = () => {
     alignItems: 'center',
     gap: '4px',
     marginBottom: '8px',
-  };
-
-  const starStyle = {
-    color: '#fbbf24',
-    fontSize: '14px',
   };
 
   const ratingTextStyle = {

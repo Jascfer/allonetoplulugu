@@ -114,37 +114,37 @@ function App() {
                 Türkiye'nin en büyük not paylaşım platformu. Öğrencilerin başarısı için tasarlandı.
               </p>
               <div style={socialLinksStyle}>
-                <a href="#" style={socialLinkStyle}>📘</a>
-                <a href="#" style={socialLinkStyle}>📷</a>
-                <a href="#" style={socialLinkStyle}>🐦</a>
-                <a href="#" style={socialLinkStyle}>📺</a>
+                <a href="https://facebook.com" style={socialLinkStyle}>📘</a>
+                <a href="https://instagram.com" style={socialLinkStyle}>📷</a>
+                <a href="https://twitter.com" style={socialLinkStyle}>🐦</a>
+                <a href="https://youtube.com" style={socialLinkStyle}>📺</a>
               </div>
             </div>
 
             <div style={footerSectionStyle}>
               <h3 style={footerTitleStyle}>Dersler</h3>
-              <a href="#" style={footerLinkStyle}>Matematik</a>
-              <a href="#" style={footerLinkStyle}>Fizik</a>
-              <a href="#" style={footerLinkStyle}>Kimya</a>
-              <a href="#" style={footerLinkStyle}>Biyoloji</a>
-              <a href="#" style={footerLinkStyle}>Türkçe</a>
+              <a href="/matematik" style={footerLinkStyle}>Matematik</a>
+              <a href="/fizik" style={footerLinkStyle}>Fizik</a>
+              <a href="/kimya" style={footerLinkStyle}>Kimya</a>
+              <a href="/biyoloji" style={footerLinkStyle}>Biyoloji</a>
+              <a href="/turkce" style={footerLinkStyle}>Türkçe</a>
             </div>
 
             <div style={footerSectionStyle}>
               <h3 style={footerTitleStyle}>Kaynaklar</h3>
-              <a href="#" style={footerLinkStyle}>Not Yükle</a>
-              <a href="#" style={footerLinkStyle}>Günlük Sorular</a>
-              <a href="#" style={footerLinkStyle}>Topluluk</a>
-              <a href="#" style={footerLinkStyle}>Yardım</a>
-              <a href="#" style={footerLinkStyle}>İletişim</a>
+              <a href="/upload" style={footerLinkStyle}>Not Yükle</a>
+              <a href="/daily-questions" style={footerLinkStyle}>Günlük Sorular</a>
+              <a href="/community" style={footerLinkStyle}>Topluluk</a>
+              <a href="/help" style={footerLinkStyle}>Yardım</a>
+              <a href="/contact" style={footerLinkStyle}>İletişim</a>
             </div>
 
             <div style={footerSectionStyle}>
               <h3 style={footerTitleStyle}>Destek</h3>
-              <a href="#" style={footerLinkStyle}>SSS</a>
-              <a href="#" style={footerLinkStyle}>Kullanım Şartları</a>
-              <a href="#" style={footerLinkStyle}>Gizlilik Politikası</a>
-              <a href="#" style={footerLinkStyle}>Çerez Politikası</a>
+              <a href="/faq" style={footerLinkStyle}>SSS</a>
+              <a href="/terms" style={footerLinkStyle}>Kullanım Şartları</a>
+              <a href="/privacy" style={footerLinkStyle}>Gizlilik Politikası</a>
+              <a href="/cookies" style={footerLinkStyle}>Çerez Politikası</a>
             </div>
           </div>
 
