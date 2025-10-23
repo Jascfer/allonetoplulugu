@@ -13,6 +13,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const { login } = useAuth();
 
@@ -20,9 +21,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     try {
       await login(email, password);
+      setSuccess(true);
+      // Başarılı giriş sonrası modal'ı kapat
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('closeAuthModal'));
+      }, 1000);
     } catch (err: any) {
       setError(err.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
@@ -139,6 +146,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     textAlign: 'center' as const,
   };
 
+  const successStyle = {
+    background: 'rgba(34, 197, 94, 0.1)',
+    border: '1px solid rgba(34, 197, 94, 0.3)',
+    borderRadius: '8px',
+    padding: '12px',
+    marginBottom: '20px',
+    color: '#86efac',
+    fontSize: '14px',
+    textAlign: 'center' as const,
+  };
+
   return (
     <motion.div
       style={containerStyle}
@@ -150,6 +168,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
       <p style={subtitleStyle}>Hesabınıza giriş yapın</p>
 
       {error && <div style={errorStyle}>{error}</div>}
+      {success && <div style={successStyle}>✅ Başarıyla giriş yapıldı!</div>}
 
       <form onSubmit={handleSubmit}>
         <div style={inputGroupStyle}>

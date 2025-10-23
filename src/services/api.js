@@ -29,15 +29,35 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      
+      // Response'un JSON olup olmadığını kontrol et
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'API request failed');
+        throw new Error(data.error || data.message || 'API request failed');
       }
 
       return data;
     } catch (error) {
       console.error('API Error:', error);
+      
+      // Network hatası kontrolü
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Bağlantı hatası. İnternet bağlantınızı kontrol edin.');
+      }
+      
+      // JSON parse hatası kontrolü
+      if (error.name === 'SyntaxError') {
+        throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+      }
+      
       throw error;
     }
   }

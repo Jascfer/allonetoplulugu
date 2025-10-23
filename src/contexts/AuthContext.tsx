@@ -76,9 +76,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       apiService.setToken(newToken);
       
       localStorage.setItem('token', newToken);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      throw error;
+      // Kullanıcı dostu hata mesajları
+      if (error.message.includes('Invalid credentials')) {
+        throw new Error('E-posta veya şifre hatalı');
+      } else if (error.message.includes('Bağlantı hatası')) {
+        throw new Error('İnternet bağlantınızı kontrol edin');
+      } else if (error.message.includes('Sunucu hatası')) {
+        throw new Error('Sunucu geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin');
+      } else {
+        throw new Error(error.message || 'Giriş yapılırken bir hata oluştu');
+      }
     }
   };
 
@@ -92,9 +101,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       apiService.setToken(newToken);
       
       localStorage.setItem('token', newToken);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      throw error;
+      // Kullanıcı dostu hata mesajları
+      if (error.message.includes('User already exists')) {
+        throw new Error('Bu e-posta adresi zaten kayıtlı');
+      } else if (error.message.includes('Validation failed')) {
+        throw new Error('Lütfen tüm alanları doğru şekilde doldurun');
+      } else if (error.message.includes('Bağlantı hatası')) {
+        throw new Error('İnternet bağlantınızı kontrol edin');
+      } else if (error.message.includes('Sunucu hatası')) {
+        throw new Error('Sunucu geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin');
+      } else {
+        throw new Error(error.message || 'Kayıt olurken bir hata oluştu');
+      }
     }
   };
 

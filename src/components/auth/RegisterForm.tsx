@@ -16,6 +16,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const { register } = useAuth();
 
@@ -23,6 +24,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     if (password !== confirmPassword) {
       setError('Şifreler eşleşmiyor');
@@ -38,6 +40,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 
     try {
       await register(name, email, password);
+      setSuccess(true);
+      // Başarılı kayıt sonrası modal'ı kapat
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('closeAuthModal'));
+      }, 1000);
     } catch (err: any) {
       setError(err.message || 'Kayıt olurken bir hata oluştu');
     } finally {
@@ -154,6 +161,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     textAlign: 'center' as const,
   };
 
+  const successStyle = {
+    background: 'rgba(34, 197, 94, 0.1)',
+    border: '1px solid rgba(34, 197, 94, 0.3)',
+    borderRadius: '8px',
+    padding: '12px',
+    marginBottom: '20px',
+    color: '#86efac',
+    fontSize: '14px',
+    textAlign: 'center' as const,
+  };
+
   return (
     <motion.div
       style={containerStyle}
@@ -165,6 +183,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
       <p style={subtitleStyle}>Yeni hesap oluşturun</p>
 
       {error && <div style={errorStyle}>{error}</div>}
+      {success && <div style={successStyle}>✅ Başarıyla kayıt olundu!</div>}
 
       <form onSubmit={handleSubmit}>
         <div style={inputGroupStyle}>
