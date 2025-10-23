@@ -101,62 +101,70 @@ const NotesDisplay: React.FC = () => {
   };
 
   const headerStyle = {
-    backgroundColor: '#1e293b',
+    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
     color: 'white',
-    padding: '30px',
-    borderRadius: '12px',
-    marginBottom: '30px',
-    textAlign: 'center' as const
+    padding: '60px 30px',
+    borderRadius: '16px',
+    marginBottom: '40px',
+    textAlign: 'center' as const,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+    border: '1px solid rgba(255,255,255,0.1)'
   };
 
   const searchContainerStyle = {
     backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '20px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    borderRadius: '16px',
+    padding: '30px',
+    marginBottom: '30px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    border: '1px solid rgba(0,0,0,0.05)'
   };
 
   const inputStyle = {
     width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #d1d5db',
-    borderRadius: '8px',
-    fontSize: '14px',
-    marginBottom: '10px'
+    padding: '16px 20px',
+    border: '2px solid #e2e8f0',
+    borderRadius: '12px',
+    fontSize: '16px',
+    marginBottom: '15px',
+    transition: 'all 0.3s ease',
+    backgroundColor: '#f8fafc'
   };
 
   const selectStyle = {
     ...inputStyle,
     backgroundColor: 'white',
-    marginRight: '10px',
+    marginRight: '15px',
     width: 'auto',
-    minWidth: '150px'
+    minWidth: '180px',
+    cursor: 'pointer'
   };
 
   const noteCardStyle = {
     backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '20px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    border: '1px solid #e2e8f0',
-    transition: 'all 0.2s'
+    borderRadius: '16px',
+    padding: '30px',
+    marginBottom: '25px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    border: '1px solid rgba(0,0,0,0.05)',
+    transition: 'all 0.3s ease',
+    position: 'relative' as const
   };
 
   const buttonStyle = {
-    padding: '10px 20px',
+    padding: '14px 28px',
     backgroundColor: '#3b82f6',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '12px',
     cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '16px',
+    fontWeight: '600',
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '8px',
-    transition: 'all 0.2s'
+    gap: '10px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
   };
 
   const tagStyle = {

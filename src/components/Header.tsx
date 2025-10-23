@@ -149,7 +149,7 @@ const Header: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('notes')}
           >
-            📚 Notlar
+            Notlar
           </motion.span>
           
           {isAdmin && (
@@ -159,7 +159,7 @@ const Header: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => scrollToSection('admin')}
             >
-              ⚙️ Admin
+              Admin Panel
             </motion.span>
           )}
           
@@ -169,7 +169,7 @@ const Header: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('daily-questions')}
           >
-            ❓ Günlük Sorular
+            Günlük Sorular
           </motion.span>
           
           <motion.span
@@ -178,7 +178,7 @@ const Header: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => scrollToSection('community')}
           >
-            👥 Topluluk
+            Topluluk
           </motion.span>
         </nav>
 
