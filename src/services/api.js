@@ -1,5 +1,5 @@
 // services/api.js - API servisleri
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://all-one-backend-production.up.railway.app' : 'http://localhost:5000');
 
 class ApiService {
   constructor() {
@@ -62,53 +62,23 @@ class ApiService {
     }
   }
 
-  // Auth API - Mock implementation for now
+  // Auth API - Real implementation
   async login(email, password) {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock successful login
-    const mockUser = {
-      id: 'mock-user-id',
-      name: 'Test User',
-      email: email,
-      avatar: 'https://via.placeholder.com/150/22c55e/ffffff?text=T',
-      role: 'user'
-    };
-    
-    const mockToken = 'mock-jwt-token-' + Date.now();
-    
-    return {
-      success: true,
-      data: {
-        token: mockToken,
-        user: mockUser
-      }
-    };
+    return this.request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
   }
 
   async register(name, email, password) {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock successful registration
-    const mockUser = {
-      id: 'mock-user-id-' + Date.now(),
-      name: name,
-      email: email,
-      avatar: 'https://via.placeholder.com/150/22c55e/ffffff?text=' + name.charAt(0).toUpperCase(),
-      role: 'user'
-    };
-    
-    const mockToken = 'mock-jwt-token-' + Date.now();
-    
-    return {
-      success: true,
-      data: {
-        token: mockToken,
-        user: mockUser
-      }
-    };
+    return this.request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
+  }
+
+  async getCurrentUser() {
+    return this.request('/api/auth/me');
   }
 
   // Notes API
