@@ -84,8 +84,8 @@ const Header: React.FC = () => {
     gap: '40px',
   };
 
-  const navLinkStyle = (activeSection: string) => ({
-    color: activeSection ? '#22c55e' : '#e2e8f0',
+  const navLinkStyle = (isActive: boolean) => ({
+    color: isActive ? '#22c55e' : '#e2e8f0',
     textDecoration: 'none',
     fontSize: '16px',
     fontWeight: '500',
