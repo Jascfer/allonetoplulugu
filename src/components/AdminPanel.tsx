@@ -4,20 +4,15 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Link, 
   BookOpen, 
-  GraduationCap, 
-  Users, 
   BarChart3,
   Settings,
   FileText,
-  Tag,
   Calendar,
   Eye,
   Download,
   Star,
   Search,
-  Filter,
   Save,
   X,
   AlertCircle,
@@ -63,6 +58,9 @@ const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{type: 'note' | 'category', id: string, name: string} | null>(null);
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<'none' | 'delete' | 'approve'>('none');
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -123,7 +121,7 @@ const AdminPanel: React.FC = () => {
     'pen-tool': '✍️',
     languages: '🌐',
     monitor: '💻',
-    trending-up: '📈',
+    'trending-up': '📈',
     book: '📚'
   };
 
@@ -209,28 +207,64 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleDeleteNote = async (id: string) => {
-    if (!window.confirm('Bu notu silmek istediğinizden emin misiniz?')) return;
+  const handleDeleteNote = async (id: string, name: string) => {
+    setShowDeleteConfirm({ type: 'note', id, name });
+  };
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    setShowDeleteConfirm({ type: 'category', id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!showDeleteConfirm) return;
 
     try {
-      await apiService.deleteNote(id);
-      setSuccess('Not başarıyla silindi!');
+      if (showDeleteConfirm.type === 'note') {
+        await apiService.deleteNote(showDeleteConfirm.id);
+        setSuccess('Not başarıyla silindi!');
+      } else {
+        await apiService.deleteCategory(showDeleteConfirm.id);
+        setSuccess('Kategori başarıyla silindi!');
+      }
+      setShowDeleteConfirm(null);
       loadData();
     } catch (error: any) {
       setError(error.message);
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
+  const handleBulkAction = async () => {
+    if (selectedNotes.length === 0) return;
 
     try {
-      await apiService.deleteCategory(id);
-      setSuccess('Kategori başarıyla silindi!');
+      if (bulkAction === 'delete') {
+        for (const noteId of selectedNotes) {
+          await apiService.deleteNote(noteId);
+        }
+        setSuccess(`${selectedNotes.length} not başarıyla silindi!`);
+      }
+      setSelectedNotes([]);
+      setBulkAction('none');
       loadData();
     } catch (error: any) {
       setError(error.message);
     }
+  };
+
+  const toggleNoteSelection = (noteId: string) => {
+    setSelectedNotes(prev => 
+      prev.includes(noteId) 
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
+  };
+
+  const selectAllNotes = () => {
+    setSelectedNotes(notes.map(note => note._id));
+  };
+
+  const clearSelection = () => {
+    setSelectedNotes([]);
   };
 
   const openNoteForm = (note?: Note) => {
@@ -327,7 +361,6 @@ const AdminPanel: React.FC = () => {
   const tabButtonStyle = (isActive: boolean) => ({
     padding: '12px 24px',
     borderRadius: '12px',
-    border: 'none',
     cursor: 'pointer',
     fontSize: '16px',
     fontWeight: '600',
@@ -631,19 +664,69 @@ const AdminPanel: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                   <h2 style={{ fontSize: '1.8rem', fontWeight: '600', margin: 0 }}>Notlar</h2>
-                  <motion.button
-                    style={primaryButtonStyle}
-                    onClick={() => openNoteForm()}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Plus size={20} />
-                    Yeni Not Ekle
-                  </motion.button>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {selectedNotes.length > 0 && (
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginRight: '15px' }}>
+                        <span style={{ color: '#cbd5e1', fontSize: '14px' }}>
+                          {selectedNotes.length} seçili
+                        </span>
+                        <select
+                          value={bulkAction}
+                          onChange={(e) => setBulkAction(e.target.value as any)}
+                          style={{ ...selectStyle, minWidth: '120px' }}
+                        >
+                          <option value="none">İşlem Seç</option>
+                          <option value="delete">Sil</option>
+                        </select>
+                        <motion.button
+                          style={bulkAction !== 'none' ? primaryButtonStyle : secondaryButtonStyle}
+                          onClick={handleBulkAction}
+                          disabled={bulkAction === 'none'}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Uygula
+                        </motion.button>
+                        <motion.button
+                          style={secondaryButtonStyle}
+                          onClick={clearSelection}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Temizle
+                        </motion.button>
+                      </div>
+                    )}
+                    <motion.button
+                      style={primaryButtonStyle}
+                      onClick={() => openNoteForm()}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Plus size={20} />
+                      Yeni Not Ekle
+                    </motion.button>
+                  </div>
                 </div>
 
+                {notes.length > 0 && (
+                  <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <motion.button
+                      style={secondaryButtonStyle}
+                      onClick={selectAllNotes}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Tümünü Seç
+                    </motion.button>
+                    <span style={{ color: '#94a3b8', fontSize: '14px' }}>
+                      Toplam {notes.length} not
+                    </span>
+                  </div>
+                )}
+
                 {notes.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px', ...cardStyle }}>
+                  <div style={{ textAlign: 'center', ...cardStyle, padding: '60px' }}>
                     <FileText size={64} style={{ color: '#94a3b8', marginBottom: '20px' }} />
                     <h3 style={{ fontSize: '1.5rem', color: '#cbd5e1', marginBottom: '10px' }}>Henüz not eklenmemiş</h3>
                     <p style={{ color: '#94a3b8' }}>İlk notunuzu eklemek için yukarıdaki butona tıklayın</p>
@@ -660,9 +743,22 @@ const AdminPanel: React.FC = () => {
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                           <div style={{ flex: 1 }}>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '8px', color: 'white' }}>
-                              {note.title}
-                            </h3>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={selectedNotes.includes(note._id)}
+                                onChange={() => toggleNoteSelection(note._id)}
+                                style={{
+                                  width: '18px',
+                                  height: '18px',
+                                  accentColor: '#22c55e',
+                                  cursor: 'pointer'
+                                }}
+                              />
+                              <h3 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0, color: 'white' }}>
+                                {note.title}
+                              </h3>
+                            </div>
                             <p style={{ fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '10px' }}>
                               {note.description.substring(0, 100)}...
                             </p>
@@ -678,7 +774,7 @@ const AdminPanel: React.FC = () => {
                             </motion.button>
                             <motion.button
                               style={dangerButtonStyle}
-                              onClick={() => handleDeleteNote(note._id)}
+                              onClick={() => handleDeleteNote(note._id, note.title)}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                             >
@@ -812,7 +908,7 @@ const AdminPanel: React.FC = () => {
                 </div>
 
                 {categories.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px', ...cardStyle }}>
+                  <div style={{ textAlign: 'center', ...cardStyle, padding: '60px' }}>
                     <BookOpen size={64} style={{ color: '#94a3b8', marginBottom: '20px' }} />
                     <h3 style={{ fontSize: '1.5rem', color: '#cbd5e1', marginBottom: '10px' }}>Henüz kategori eklenmemiş</h3>
                     <p style={{ color: '#94a3b8' }}>İlk kategorinizi eklemek için yukarıdaki butona tıklayın</p>
@@ -850,7 +946,7 @@ const AdminPanel: React.FC = () => {
                             </motion.button>
                             <motion.button
                               style={dangerButtonStyle}
-                              onClick={() => handleDeleteCategory(category._id)}
+                              onClick={() => handleDeleteCategory(category._id, category.name)}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                             >
@@ -1161,6 +1257,55 @@ const AdminPanel: React.FC = () => {
                 </motion.button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div style={modalStyle}>
+          <motion.div
+            style={{
+              ...modalContentStyle,
+              maxWidth: '400px',
+              textAlign: 'center'
+            }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <div style={{ marginBottom: '20px' }}>
+              <AlertCircle size={64} style={{ color: '#ef4444', marginBottom: '15px' }} />
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>
+                Silme Onayı
+              </h2>
+              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>
+                <strong>{showDeleteConfirm.name}</strong> {showDeleteConfirm.type === 'note' ? 'notunu' : 'kategorisini'} silmek istediğinizden emin misiniz?
+              </p>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '10px' }}>
+                Bu işlem geri alınamaz.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+              <motion.button
+                style={secondaryButtonStyle}
+                onClick={() => setShowDeleteConfirm(null)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                İptal
+              </motion.button>
+              <motion.button
+                style={dangerButtonStyle}
+                onClick={confirmDelete}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Trash2 size={18} />
+                Sil
+              </motion.button>
+            </div>
           </motion.div>
         </div>
       )}
