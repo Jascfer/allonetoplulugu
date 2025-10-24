@@ -12,32 +12,31 @@ const categorySchema = new mongoose.Schema({
     type: String,
     maxlength: [200, 'Description cannot be more than 200 characters']
   },
-  subject: {
+  color: {
     type: String,
-    required: [true, 'Subject is required'],
-    enum: ['matematik', 'fizik', 'kimya', 'biyoloji', 'turkce', 'tarih', 'cografya', 'felsefe', 'edebiyat']
+    default: '#3b82f6',
+    validate: {
+      validator: function(v) {
+        return /^#[0-9A-F]{6}$/i.test(v);
+      },
+      message: 'Please provide a valid hex color'
+    }
   },
-  grade: {
+  icon: {
     type: String,
-    required: [true, 'Grade is required'],
-    enum: ['9', '10', '11', '12']
+    default: 'book'
   },
   isActive: {
     type: Boolean,
     default: true
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
   }
 }, {
   timestamps: true
 });
 
 // Index for better search performance
-categorySchema.index({ subject: 1, grade: 1 });
 categorySchema.index({ name: 'text', description: 'text' });
+categorySchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Category', categorySchema);
 

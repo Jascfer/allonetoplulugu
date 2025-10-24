@@ -17,15 +17,26 @@ const noteSchema = new mongoose.Schema({
     ref: 'Category',
     required: [true, 'Category is required']
   },
-  googleDriveUrl: {
+  googleDriveLink: {
     type: String,
-    required: [true, 'Google Drive URL is required'],
-    validate: {
-      validator: function(v) {
-        return /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view/.test(v);
-      },
-      message: 'Please provide a valid Google Drive URL'
-    }
+    required: [true, 'Download URL is required']
+  },
+  downloadUrl: {
+    type: String,
+    required: [true, 'Download URL is required']
+  },
+  subject: {
+    type: String,
+    required: [true, 'Subject is required'],
+    trim: true
+  },
+  semester: {
+    type: String,
+    trim: true
+  },
+  year: {
+    type: String,
+    trim: true
   },
   downloadCount: {
     type: Number,

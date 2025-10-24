@@ -10,7 +10,7 @@ const adminAuth = require('../middleware/adminAuth');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category, subject, grade, search, page = 1, limit = 10 } = req.query;
+    const { category, subject, semester, year, search, sortBy, page = 1, limit = 10 } = req.query;
     
     let query = { isApproved: true };
     
@@ -22,8 +22,12 @@ router.get('/', async (req, res) => {
       query.subject = subject;
     }
     
-    if (grade) {
-      query.grade = grade;
+    if (semester) {
+      query.semester = semester;
+    }
+    
+    if (year) {
+      query.year = year;
     }
     
     if (search) {
@@ -34,10 +38,17 @@ router.get('/', async (req, res) => {
       ];
     }
     
+    let sortOptions = { createdAt: -1 };
+    if (sortBy === 'popular') {
+      sortOptions = { downloadCount: -1, viewCount: -1 };
+    } else if (sortBy === 'top') {
+      sortOptions = { rating: -1 };
+    }
+    
     const notes = await Note.find(query)
-      .populate('category', 'name subject grade')
+      .populate('category', 'name description color icon')
       .populate('author', 'name avatar')
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
@@ -90,7 +101,7 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', auth, adminAuth, async (req, res) => {
   try {
-    const { title, description, category, googleDriveUrl, tags } = req.body;
+    const { title, description, category, googleDriveLink, downloadUrl, tags, subject, semester, year } = req.body;
     
     // Validate category exists
     const categoryExists = await Category.findById(category);
@@ -101,21 +112,16 @@ router.post('/', auth, adminAuth, async (req, res) => {
       });
     }
     
-    // Validate Google Drive URL
-    const driveUrlRegex = /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view/;
-    if (!driveUrlRegex.test(googleDriveUrl)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Geçersiz Google Drive URL'
-      });
-    }
-    
     const note = new Note({
       title,
       description,
       category,
-      googleDriveUrl,
-      tags: tags || [],
+      googleDriveLink: downloadUrl || googleDriveLink,
+      downloadUrl: downloadUrl || googleDriveLink,
+      subject,
+      semester,
+      year,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
       author: req.userId,
       isApproved: true // Admin notes are auto-approved
     });
@@ -123,7 +129,7 @@ router.post('/', auth, adminAuth, async (req, res) => {
     await note.save();
     
     // Populate the response
-    await note.populate('category', 'name subject grade');
+    await note.populate('category', 'name description color icon');
     await note.populate('author', 'name avatar');
     
     res.status(201).json({
@@ -184,7 +190,7 @@ router.put('/:id', auth, adminAuth, async (req, res) => {
     await note.save();
     
     // Populate the response
-    await note.populate('category', 'name subject grade');
+    await note.populate('category', 'name description color icon');
     await note.populate('author', 'name avatar');
     
     res.json({
