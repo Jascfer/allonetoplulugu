@@ -92,7 +92,7 @@ function AppContent() {
           <Route path="/" element={
             <>
               <Hero />
-              <div id="notes">
+              <div id="popular-notes">
                 <PopularNotes />
               </div>
               {isAdmin && (
