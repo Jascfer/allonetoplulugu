@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Eye, Star, TrendingUp, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
 
 interface Category {
@@ -27,8 +28,16 @@ interface Note {
 }
 
 const PopularNotes: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleViewAllNotes = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent('openAuthModal'));
+    }
+  };
 
   useEffect(() => {
     const loadPopularNotes = async () => {
@@ -236,7 +245,11 @@ const PopularNotes: React.FC = () => {
         <p style={subtitleStyle}>
           Öğrenciler tarafından en çok tercih edilen kaliteli notlar
         </p>
-        <Link to="/notes" style={viewAllButtonStyle}>
+        <Link 
+          to="/notes" 
+          style={viewAllButtonStyle}
+          onClick={handleViewAllNotes}
+        >
           Tüm Notları Görüntüle
           <ArrowRight size={18} />
         </Link>

@@ -30,13 +30,16 @@ const Header: React.FC = () => {
   useEffect(() => {
     const handleCloseAuthModal = () => setShowAuthModal(false);
     const handleCloseProfileModal = () => setShowProfileModal(false);
+    const handleOpenAuthModal = () => setShowAuthModal(true);
     
     window.addEventListener('closeAuthModal', handleCloseAuthModal);
     window.addEventListener('closeProfileModal', handleCloseProfileModal);
+    window.addEventListener('openAuthModal', handleOpenAuthModal);
     
     return () => {
       window.removeEventListener('closeAuthModal', handleCloseAuthModal);
       window.removeEventListener('closeProfileModal', handleCloseProfileModal);
+      window.removeEventListener('openAuthModal', handleOpenAuthModal);
     };
   }, []);
 
@@ -45,6 +48,13 @@ const Header: React.FC = () => {
     if (isAuthenticated) {
       setShowProfileModal(true);
     } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleNotesClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
       setShowAuthModal(true);
     }
   };
@@ -143,9 +153,13 @@ const Header: React.FC = () => {
             Ana Sayfa
           </Link>
 
-          <Link to="/notes" style={navLinkStyle(location.pathname === '/notes')}>
-            Notlar
-          </Link>
+                  <Link 
+                    to="/notes" 
+                    style={navLinkStyle(location.pathname === '/notes')}
+                    onClick={handleNotesClick}
+                  >
+                    Notlar
+                  </Link>
 
           {isAdmin && (
             <Link to="/admin" style={navLinkStyle(location.pathname === '/admin')}>
@@ -213,13 +227,16 @@ const Header: React.FC = () => {
             >
               Ana Sayfa
             </Link>
-            <Link
-              to="/notes"
-              style={{ ...navLinkStyle(location.pathname === '/notes'), padding: '12px 0' }}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Notlar
-            </Link>
+                    <Link
+                      to="/notes"
+                      style={{ ...navLinkStyle(location.pathname === '/notes'), padding: '12px 0' }}
+                      onClick={(e) => {
+                        handleNotesClick(e);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      Notlar
+                    </Link>
             {isAdmin && (
               <Link
                 to="/admin"

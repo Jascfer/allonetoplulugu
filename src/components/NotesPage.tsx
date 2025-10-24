@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen, ArrowLeft, Lock } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
 
 interface Category {
@@ -29,6 +30,7 @@ interface Note {
 }
 
 const NotesPage: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,99 @@ const NotesPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+
+  // Authentication kontrolü - giriş yapmamış kullanıcıları ana sayfaya yönlendir
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          style={{
+            textAlign: 'center',
+            maxWidth: '500px',
+            padding: '40px',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          }}
+        >
+          <Lock size={64} style={{ color: '#ef4444', marginBottom: '20px' }} />
+          <h2 style={{
+            fontSize: '2rem',
+            fontWeight: '700',
+            marginBottom: '15px',
+            background: 'linear-gradient(90deg, #ef4444, #f97316)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Giriş Gerekli
+          </h2>
+          <p style={{
+            fontSize: '1.1rem',
+            color: '#cbd5e1',
+            marginBottom: '30px',
+            lineHeight: '1.6'
+          }}>
+            Notları görüntülemek için lütfen önce giriş yapın. Bu sayede tüm notlara erişebilir ve indirebilirsiniz.
+          </p>
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link
+              to="/"
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#22c55e',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontWeight: '600',
+                transition: 'all 0.3s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <ArrowLeft size={18} />
+              Ana Sayfaya Dön
+            </Link>
+            <button
+              onClick={() => {
+                // Auth modal'ı açmak için custom event gönder
+                window.dispatchEvent(new CustomEvent('openAuthModal'));
+              }}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <User size={18} />
+              Giriş Yap
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
