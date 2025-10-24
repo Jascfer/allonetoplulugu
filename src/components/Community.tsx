@@ -3,13 +3,10 @@ import { motion } from 'framer-motion';
 import { 
   Users, 
   MessageCircle, 
-  ThumbsUp, 
   Calendar, 
   TrendingUp,
   Award,
-  Star,
   BookOpen,
-  Target,
   Zap,
   Heart,
   Share2
@@ -48,19 +45,12 @@ interface Comment {
   likes: string[];
 }
 
-interface UserStats {
-  totalPosts: number;
-  totalComments: number;
-  totalLikes: number;
-  points: number;
-  rank: number;
-}
 
 const Community: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'discussions' | 'questions' | 'achievements' | 'resources'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'discussion' | 'question' | 'achievement' | 'resource'>('all');
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
@@ -308,10 +298,6 @@ const Community: React.FC = () => {
     ...buttonStyle,
     backgroundColor: '#22c55e',
     color: 'white',
-    '&:hover': {
-      backgroundColor: '#16a34a',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const secondaryButtonStyle = {
@@ -319,10 +305,6 @@ const Community: React.FC = () => {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     color: '#cbd5e1',
     border: '1px solid rgba(255, 255, 255, 0.2)',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const inputStyle = {
@@ -335,9 +317,6 @@ const Community: React.FC = () => {
     fontSize: '16px',
     backdropFilter: 'blur(10px)',
     marginBottom: '15px',
-    '&::placeholder': {
-      color: '#94a3b8',
-    },
   };
 
   const textareaStyle = {
@@ -369,9 +348,6 @@ const Community: React.FC = () => {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    '&:hover': {
-      backgroundColor: isActive ? '#16a34a' : 'rgba(255, 255, 255, 0.2)',
-    },
   });
 
   if (loading) {
@@ -467,8 +443,8 @@ const Community: React.FC = () => {
           Tümü
         </motion.button>
         <motion.button
-          style={tabStyle(activeTab === 'discussions')}
-          onClick={() => setActiveTab('discussions')}
+          style={tabStyle(activeTab === 'discussion')}
+          onClick={() => setActiveTab('discussion')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -476,8 +452,8 @@ const Community: React.FC = () => {
           Tartışmalar
         </motion.button>
         <motion.button
-          style={tabStyle(activeTab === 'questions')}
-          onClick={() => setActiveTab('questions')}
+          style={tabStyle(activeTab === 'question')}
+          onClick={() => setActiveTab('question')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -485,8 +461,8 @@ const Community: React.FC = () => {
           Sorular
         </motion.button>
         <motion.button
-          style={tabStyle(activeTab === 'achievements')}
-          onClick={() => setActiveTab('achievements')}
+          style={tabStyle(activeTab === 'achievement')}
+          onClick={() => setActiveTab('achievement')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -494,8 +470,8 @@ const Community: React.FC = () => {
           Başarılar
         </motion.button>
         <motion.button
-          style={tabStyle(activeTab === 'resources')}
-          onClick={() => setActiveTab('resources')}
+          style={tabStyle(activeTab === 'resource')}
+          onClick={() => setActiveTab('resource')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

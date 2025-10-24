@@ -7,7 +7,6 @@ import PopularNotes from './components/PopularNotes';
 import NotesPage from './components/NotesPage';
 import DailyQuestions from './components/DailyQuestions';
 import Community from './components/Community';
-import RecentNotes from './components/RecentNotes';
 import AdminPanel from './components/AdminPanel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 

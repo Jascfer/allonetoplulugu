@@ -161,10 +161,6 @@ const NoteCard: React.FC<NoteCardProps> = ({
     border: '1px solid rgba(255, 255, 255, 0.1)',
     transition: 'all 0.3s ease',
     position: 'relative' as const,
-    '&:hover': {
-      transform: 'translateY(-5px)',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-    },
   };
 
   const headerStyle = {
@@ -242,10 +238,6 @@ const NoteCard: React.FC<NoteCardProps> = ({
     ...actionButtonStyle,
     backgroundColor: '#22c55e',
     color: 'white',
-    '&:hover': {
-      backgroundColor: '#16a34a',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const secondaryButtonStyle = {
@@ -253,20 +245,12 @@ const NoteCard: React.FC<NoteCardProps> = ({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     color: '#cbd5e1',
     border: '1px solid rgba(255, 255, 255, 0.2)',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const favoriteButtonStyle = {
     ...actionButtonStyle,
     backgroundColor: note.isFavorited ? '#ef4444' : 'rgba(255, 255, 255, 0.1)',
     color: note.isFavorited ? 'white' : '#cbd5e1',
-    '&:hover': {
-      backgroundColor: note.isFavorited ? '#dc2626' : 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const ratingContainerStyle = {
@@ -280,9 +264,6 @@ const NoteCard: React.FC<NoteCardProps> = ({
     color: filled ? '#fbbf24' : '#6b7280',
     cursor: isAuthenticated ? 'pointer' : 'default',
     transition: 'all 0.2s ease',
-    '&:hover': {
-      transform: isAuthenticated ? 'scale(1.2)' : 'none',
-    },
   });
 
   const commentSectionStyle = {
@@ -347,13 +328,9 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 ...actionButtonStyle,
                 backgroundColor: '#ef4444',
                 color: 'white',
-                '&:hover': {
-                  backgroundColor: '#dc2626',
-                  transform: 'translateY(-2px)',
-                },
               }}
               onClick={() => onDelete?.(note._id)}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.1, backgroundColor: '#dc2626' }}
               whileTap={{ scale: 0.9 }}
             >
               <Trash2 size={16} />

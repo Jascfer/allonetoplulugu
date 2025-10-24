@@ -23,6 +23,13 @@ interface Category {
   icon: string;
 }
 
+interface Note {
+  _id: string;
+  subject: string;
+  semester: string;
+  year: string;
+}
+
 interface SearchFilters {
   search: string;
   category: string;
@@ -82,11 +89,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     try {
       // Get unique values for filters
       const response = await apiService.getNotes({ limit: '1000' });
-      const notes = response.data.notes || [];
+      const notes: Note[] = response.data.notes || [];
       
-      const subjects = [...new Set(notes.map(note => note.subject).filter(Boolean))];
-      const semesters = [...new Set(notes.map(note => note.semester).filter(Boolean))];
-      const years = [...new Set(notes.map(note => note.year).filter(Boolean))];
+      const subjects = Array.from(new Set(notes.map((note: Note) => note.subject).filter(Boolean)));
+      const semesters = Array.from(new Set(notes.map((note: Note) => note.semester).filter(Boolean)));
+      const years = Array.from(new Set(notes.map((note: Note) => note.year).filter(Boolean)));
       
       setAvailableSubjects(subjects);
       setAvailableSemesters(semesters);

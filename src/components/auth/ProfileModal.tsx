@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, Heart, FileText, Download } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 

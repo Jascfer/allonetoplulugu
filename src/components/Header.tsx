@@ -285,7 +285,7 @@ const Header: React.FC = () => {
 
       {/* Modals */}
       {showAuthModal && <AuthModal />}
-      {showProfileModal && <ProfileModal />}
+      {showProfileModal && <ProfileModal show={showProfileModal} onClose={() => setShowProfileModal(false)} />}
     </motion.header>
   );
 };
