@@ -154,6 +154,50 @@ class ApiService {
       body: formData,
     }).then(res => res.json());
   }
+
+  // Note Interactions API
+  async rateNote(noteId, rating) {
+    return this.request(`/api/notes/${noteId}/rate`, {
+      method: 'POST',
+      body: JSON.stringify({ rating }),
+    });
+  }
+
+  async addComment(noteId, content) {
+    return this.request(`/api/notes/${noteId}/comment`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async toggleFavorite(noteId) {
+    return this.request(`/api/notes/${noteId}/favorite`, {
+      method: 'POST',
+    });
+  }
+
+  // User Management API
+  async updateProfile(profileData) {
+    return this.request('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async changePassword(currentPassword, newPassword) {
+    return this.request('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
+  async getUserNotes(userId) {
+    return this.request(`/api/users/${userId}/notes`);
+  }
+
+  async getUserFavorites() {
+    return this.request('/api/users/favorites');
+  }
 }
 
 const apiService = new ApiService();

@@ -1,285 +1,510 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, Heart, FileText, Download } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Settings, LogOut, Edit3, Shield } from 'lucide-react';
+import apiService from '../../services/api';
 
-const ProfileModal: React.FC = () => {
-  const { user, logout } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
+interface ProfileModalProps {
+  show: boolean;
+  onClose: () => void;
+}
 
-  const containerStyle = {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0, 0, 0, 0.8)',
-    backdropFilter: 'blur(10px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    padding: '20px',
-    overflowY: 'auto' as const,
-    minHeight: '100vh',
+const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
+  const { user, logout, updateUser } = useAuth();
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'activity'>('profile');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Profile form
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || '',
+    email: user?.email || ''
+  });
+  
+  // Password form
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await apiService.updateProfile(profileForm);
+      updateUser(response.data.user);
+      setSuccess('Profil başarıyla güncellendi!');
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('Yeni şifreler eşleşmiyor');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await apiService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      setSuccess('Şifre başarıyla değiştirildi!');
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const modalStyle = {
-    background: 'rgba(15, 23, 42, 0.95)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(51, 65, 85, 0.3)',
-    borderRadius: '20px',
-    padding: window.innerWidth < 768 ? '24px' : '40px',
-    maxWidth: '500px',
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
     width: '100%',
-    margin: '20px auto',
-    position: 'relative' as const,
-    maxHeight: '80vh',
-    overflowY: 'auto' as const,
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: show ? 'flex' : 'none',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    backdropFilter: 'blur(10px)',
   };
 
-  const closeButtonStyle = {
-    position: 'absolute' as const,
-    top: '20px',
-    right: '20px',
-    background: 'rgba(51, 65, 85, 0.6)',
-    border: 'none',
-    borderRadius: '50%',
-    width: '40px',
-    height: '40px',
-    color: '#94a3b8',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '20px',
-    transition: 'all 0.3s ease',
+  const modalContentStyle = {
+    backgroundColor: '#1e293b',
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+    width: '90%',
+    maxWidth: '600px',
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
+    position: 'relative' as const,
+    border: '1px solid rgba(255, 255, 255, 0.1)',
   };
 
   const headerStyle = {
-    textAlign: 'center' as const,
-    marginBottom: '32px',
-  };
-
-  const avatarStyle = {
-    width: '80px',
-    height: '80px',
-    borderRadius: '50%',
-    margin: '0 auto 16px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    padding: '25px 30px 20px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
     display: 'flex',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '32px',
-    color: 'white',
-    fontWeight: 'bold',
   };
 
-  const nameStyle = {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: 'white',
-    marginBottom: '8px',
-  };
-
-  const emailStyle = {
-    fontSize: '1rem',
-    color: '#94a3b8',
-    marginBottom: '8px',
-  };
-
-  const roleStyle = {
-    fontSize: '0.875rem',
-    color: '#3b82f6',
-    background: 'rgba(59, 130, 246, 0.1)',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    display: 'inline-block',
-  };
-
-  const sectionStyle = {
-    marginBottom: '24px',
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '1.125rem',
+  const tabStyle = (isActive: boolean) => ({
+    padding: '10px 20px',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '14px',
     fontWeight: '600',
-    color: 'white',
-    marginBottom: '16px',
+    transition: 'all 0.3s ease',
+    backgroundColor: isActive ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+    color: isActive ? 'white' : '#cbd5e1',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-  };
-
-  const inputGroupStyle = {
-    marginBottom: '16px',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#e2e8f0',
-    marginBottom: '8px',
-  };
+    '&:hover': {
+      backgroundColor: isActive ? '#16a34a' : 'rgba(255, 255, 255, 0.2)',
+    },
+  });
 
   const inputStyle = {
     width: '100%',
     padding: '12px 16px',
-    background: 'rgba(51, 65, 85, 0.6)',
-    border: '1px solid rgba(71, 85, 105, 0.3)',
+    marginBottom: '15px',
     borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     color: 'white',
     fontSize: '16px',
-    outline: 'none',
-    transition: 'all 0.3s ease',
+    backdropFilter: 'blur(10px)',
+    '&::placeholder': {
+      color: '#94a3b8',
+    },
   };
 
   const buttonStyle = {
     padding: '12px 24px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    borderRadius: '12px',
     border: 'none',
-    borderRadius: '12px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+  };
+
+  const primaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#22c55e',
     color: 'white',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    marginRight: '12px',
+    '&:hover': {
+      backgroundColor: '#16a34a',
+      transform: 'translateY(-2px)',
+    },
   };
 
-  const logoutButtonStyle = {
-    padding: '12px 24px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    borderRadius: '12px',
-    color: '#fca5a5',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
+  const secondaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      transform: 'translateY(-2px)',
+    },
   };
 
-  const handleSave = () => {
-    // Profil güncelleme işlemi burada yapılacak
-    setIsEditing(false);
+  const dangerButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#ef4444',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#dc2626',
+      transform: 'translateY(-2px)',
+    },
   };
 
-  const handleLogout = () => {
-    logout();
-    window.dispatchEvent(new CustomEvent('closeProfileModal'));
-  };
+  if (!show) return null;
 
   return (
-    <motion.div
-      style={containerStyle}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div style={modalStyle}>
       <motion.div
-        style={modalStyle}
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
+        style={modalContentStyle}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}
       >
-        <button
-          style={closeButtonStyle}
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('closeProfileModal'));
-          }}
-        >
-          ×
-        </button>
-
+        {/* Header */}
         <div style={headerStyle}>
-          <div style={avatarStyle}>
-            {user?.name?.charAt(0).toUpperCase()}
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '700', color: '#22c55e', margin: 0 }}>
+              Profil Yönetimi
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: '5px 0 0 0' }}>
+              Hesap bilgilerinizi yönetin
+            </p>
           </div>
-          <h2 style={nameStyle}>{user?.name}</h2>
-          <p style={emailStyle}>{user?.email}</p>
-          <span style={roleStyle}>
-            <Shield size={14} style={{ marginRight: '4px' }} />
-            {user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı'}
-          </span>
+          <motion.button
+            style={{ ...buttonStyle, backgroundColor: 'transparent', color: '#94a3b8', padding: '8px' }}
+            onClick={onClose}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <X size={24} />
+          </motion.button>
         </div>
 
-        <div style={sectionStyle}>
-          <h3 style={sectionTitleStyle}>
-            <Settings size={20} />
-            Hesap Bilgileri
-          </h3>
+        {/* Tabs */}
+        <div style={{ padding: '20px 30px 0', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <motion.button
+            style={tabStyle(activeTab === 'profile')}
+            onClick={() => setActiveTab('profile')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <User size={18} />
+            Profil
+          </motion.button>
+          <motion.button
+            style={tabStyle(activeTab === 'password')}
+            onClick={() => setActiveTab('password')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Lock size={18} />
+            Şifre
+          </motion.button>
+          <motion.button
+            style={tabStyle(activeTab === 'activity')}
+            onClick={() => setActiveTab('activity')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FileText size={18} />
+            Aktivite
+          </motion.button>
+        </div>
 
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Ad Soyad</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={inputStyle}
-              disabled={!isEditing}
-            />
-          </div>
+        {/* Content */}
+        <div style={{ padding: '30px' }}>
+          {/* Success/Error Messages */}
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                border: '1px solid #22c55e',
+                color: '#22c55e',
+                padding: '15px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                fontSize: '14px',
+              }}
+            >
+              {success}
+            </motion.div>
+          )}
 
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>E-posta</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={inputStyle}
-              disabled={!isEditing}
-            />
-          </div>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid #ef4444',
+                color: '#ef4444',
+                padding: '15px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                fontSize: '14px',
+              }}
+            >
+              {error}
+            </motion.div>
+          )}
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {isEditing ? (
-              <>
-                <button style={buttonStyle} onClick={handleSave}>
-                  <Edit3 size={16} />
-                  Kaydet
-                </button>
-                <button
-                  style={{
-                    ...buttonStyle,
-                    background: 'rgba(51, 65, 85, 0.6)',
-                    color: '#94a3b8',
-                  }}
-                  onClick={() => setIsEditing(false)}
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <form onSubmit={handleProfileUpdate}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  Ad Soyad
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <User size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    placeholder="Adınızı girin"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    style={{ ...inputStyle, paddingLeft: '45px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  E-posta
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="email"
+                    placeholder="E-posta adresinizi girin"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    style={{ ...inputStyle, paddingLeft: '45px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
+                <motion.button
+                  type="button"
+                  style={secondaryButtonStyle}
+                  onClick={onClose}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   İptal
-                </button>
-              </>
-            ) : (
-              <button
-                style={buttonStyle}
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit3 size={16} />
-                Düzenle
-              </button>
-            )}
-          </div>
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  style={primaryButtonStyle}
+                  disabled={isLoading}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Save size={18} />
+                  {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                </motion.button>
+              </div>
+            </form>
+          )}
+
+          {/* Password Tab */}
+          {activeTab === 'password' && (
+            <form onSubmit={handlePasswordChange}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  Mevcut Şifre
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type={showPasswords.current ? 'text' : 'password'}
+                    placeholder="Mevcut şifrenizi girin"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    style={{ ...inputStyle, paddingLeft: '45px', paddingRight: '45px' }}
+                    required
+                  />
+                  <motion.button
+                    type="button"
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                    onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {showPasswords.current ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </motion.button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  Yeni Şifre
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type={showPasswords.new ? 'text' : 'password'}
+                    placeholder="Yeni şifrenizi girin"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    style={{ ...inputStyle, paddingLeft: '45px', paddingRight: '45px' }}
+                    required
+                  />
+                  <motion.button
+                    type="button"
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                    onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {showPasswords.new ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </motion.button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  Şifre Onayı
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type={showPasswords.confirm ? 'text' : 'password'}
+                    placeholder="Yeni şifrenizi tekrar girin"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    style={{ ...inputStyle, paddingLeft: '45px', paddingRight: '45px' }}
+                    required
+                  />
+                  <motion.button
+                    type="button"
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                    onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {showPasswords.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </motion.button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
+                <motion.button
+                  type="button"
+                  style={secondaryButtonStyle}
+                  onClick={onClose}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  İptal
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  style={primaryButtonStyle}
+                  disabled={isLoading}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Save size={18} />
+                  {isLoading ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
+                </motion.button>
+              </div>
+            </form>
+          )}
+
+          {/* Activity Tab */}
+          {activeTab === 'activity' && (
+            <div>
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <Settings size={64} style={{ color: '#94a3b8', marginBottom: '20px' }} />
+                <h3 style={{ fontSize: '1.3rem', color: '#cbd5e1', marginBottom: '10px' }}>
+                  Aktivite Geçmişi
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                  Yakında kullanıcı aktivitelerinizi burada görebileceksiniz.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div style={{ textAlign: 'center' as const }}>
-          <button style={logoutButtonStyle} onClick={handleLogout}>
-            <LogOut size={16} />
+        {/* Footer */}
+        <div style={{ padding: '20px 30px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img
+              src={user?.avatar}
+              alt={user?.name}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+            />
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
+                {user?.name}
+              </div>
+              <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                {user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı'}
+              </div>
+            </div>
+          </div>
+          <motion.button
+            style={dangerButtonStyle}
+            onClick={logout}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             Çıkış Yap
-          </button>
+          </motion.button>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
 

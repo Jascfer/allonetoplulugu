@@ -5,7 +5,8 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import PopularNotes from './components/PopularNotes';
 import NotesPage from './components/NotesPage';
-import DailyQuestion from './components/DailyQuestion';
+import DailyQuestions from './components/DailyQuestions';
+import Community from './components/Community';
 import RecentNotes from './components/RecentNotes';
 import AdminPanel from './components/AdminPanel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -101,17 +102,17 @@ function AppContent() {
                 </div>
               )}
               <div id="daily-questions">
-                <DailyQuestion />
+                <DailyQuestions />
               </div>
               <div id="community">
-                <RecentNotes />
+                <Community />
               </div>
             </>
           } />
           <Route path="/notes" element={<NotesPage />} />
           {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
-          <Route path="/daily-questions" element={<DailyQuestion />} />
-          <Route path="/community" element={<RecentNotes />} />
+          <Route path="/daily-questions" element={<DailyQuestions />} />
+          <Route path="/community" element={<Community />} />
         </Routes>
       </main>
       
