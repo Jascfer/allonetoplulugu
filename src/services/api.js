@@ -1,5 +1,6 @@
 // services/api.js - API servisleri
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.allonetoplulugu.tr' : 'http://localhost:5000');
+// services/api.js - API servisleri
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://all-one-backend-production.up.railway.app' : 'http://localhost:5000');
 
 class ApiService {
   constructor() {
