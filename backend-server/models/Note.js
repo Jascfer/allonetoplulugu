@@ -68,6 +68,47 @@ const noteSchema = new mongoose.Schema({
   tags: [{
     type: String,
     trim: true
+  }],
+  comments: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    content: {
+      type: String,
+      required: true,
+      maxlength: [500, 'Comment cannot be more than 500 characters']
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    isEdited: {
+      type: Boolean,
+      default: false
+    }
+  }],
+  ratings: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  favorites: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }]
 }, {
   timestamps: true

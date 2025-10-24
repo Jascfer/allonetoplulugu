@@ -9,20 +9,7 @@ const adminAuth = require('../middleware/adminAuth');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { subject, grade } = req.query;
-    
-    let query = { isActive: true };
-    
-    if (subject) {
-      query.subject = subject;
-    }
-    
-    if (grade) {
-      query.grade = grade;
-    }
-    
-    const categories = await Category.find(query)
-      .populate('createdBy', 'name')
+    const categories = await Category.find({ isActive: true })
       .sort({ name: 1 });
     
     res.json({
@@ -43,13 +30,11 @@ router.get('/', async (req, res) => {
 // @access  Private/Admin
 router.post('/', auth, adminAuth, async (req, res) => {
   try {
-    const { name, description, subject, grade } = req.body;
+    const { name, description, color, icon } = req.body;
     
     // Check if category already exists
     const existingCategory = await Category.findOne({ 
-      name: { $regex: new RegExp(`^${name}$`, 'i') },
-      subject,
-      grade
+      name: { $regex: new RegExp(`^${name}$`, 'i') }
     });
     
     if (existingCategory) {
@@ -62,9 +47,8 @@ router.post('/', auth, adminAuth, async (req, res) => {
     const category = new Category({
       name,
       description,
-      subject,
-      grade,
-      createdBy: req.userId
+      color: color || '#3b82f6',
+      icon: icon || 'book'
     });
     
     await category.save();
@@ -87,7 +71,7 @@ router.post('/', auth, adminAuth, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', auth, adminAuth, async (req, res) => {
   try {
-    const { name, description, subject, grade, isActive } = req.body;
+    const { name, description, color, icon, isActive } = req.body;
     
     const category = await Category.findById(req.params.id);
     
@@ -100,8 +84,8 @@ router.put('/:id', auth, adminAuth, async (req, res) => {
     
     category.name = name || category.name;
     category.description = description || category.description;
-    category.subject = subject || category.subject;
-    category.grade = grade || category.grade;
+    category.color = color || category.color;
+    category.icon = icon || category.icon;
     category.isActive = isActive !== undefined ? isActive : category.isActive;
     
     await category.save();

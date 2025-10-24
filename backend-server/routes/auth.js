@@ -155,5 +155,103 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', auth, [
+  body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+  body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { name, email } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
+    // Update user fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          role: user.role
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.post('/change-password', auth, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.userId).select('+password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
 

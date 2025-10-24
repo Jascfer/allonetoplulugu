@@ -256,4 +256,122 @@ router.put('/:id/download', async (req, res) => {
   }
 });
 
+// @route   POST /api/notes/:id/rate
+// @desc    Rate a note
+// @access  Private
+router.post('/:id/rate', auth, async (req, res) => {
+  try {
+    const { rating } = req.body;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+    
+    const note = await Note.findById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    // Check if user already rated
+    const existingRating = note.ratings.find(r => r.user.toString() === req.userId);
+    if (existingRating) {
+      existingRating.rating = rating;
+    } else {
+      note.ratings.push({
+        user: req.userId,
+        rating: rating
+      });
+    }
+    
+    // Calculate average rating
+    const totalRating = note.ratings.reduce((sum, r) => sum + r.rating, 0);
+    note.rating = totalRating / note.ratings.length;
+    note.ratingCount = note.ratings.length;
+    
+    await note.save();
+    
+    res.json({
+      success: true,
+      data: {
+        rating: note.rating,
+        ratingCount: note.ratingCount
+      }
+    });
+  } catch (error) {
+    console.error('Rate note error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/notes/:id/comment
+// @desc    Add comment to note
+// @access  Private
+router.post('/:id/comment', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment content is required' });
+    }
+    
+    const note = await Note.findById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    const comment = {
+      user: req.userId,
+      content: content.trim()
+    };
+    
+    note.comments.push(comment);
+    await note.save();
+    
+    // Populate the comment with user info
+    await note.populate('comments.user', 'name avatar');
+    
+    const newComment = note.comments[note.comments.length - 1];
+    
+    res.status(201).json({
+      success: true,
+      data: { comment: newComment }
+    });
+  } catch (error) {
+    console.error('Add comment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/notes/:id/favorite
+// @desc    Toggle favorite status
+// @access  Private
+router.post('/:id/favorite', auth, async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    const favoriteIndex = note.favorites.indexOf(req.userId);
+    let isFavorited = false;
+    
+    if (favoriteIndex > -1) {
+      note.favorites.splice(favoriteIndex, 1);
+    } else {
+      note.favorites.push(req.userId);
+      isFavorited = true;
+    }
+    
+    await note.save();
+    
+    res.json({
+      success: true,
+      data: { isFavorited }
+    });
+  } catch (error) {
+    console.error('Toggle favorite error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
