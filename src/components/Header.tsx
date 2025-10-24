@@ -40,14 +40,6 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    if (location.pathname === '/') {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
 
   const handleAuthClick = () => {
     if (isAuthenticated) {
