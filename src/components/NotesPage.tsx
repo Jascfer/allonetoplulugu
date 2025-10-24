@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen, ArrowLeft, Lock } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
 
@@ -30,7 +30,7 @@ interface Note {
 }
 
 const NotesPage: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,39 @@ const NotesPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+
+  const loadNotes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedSubject) params.append('subject', selectedSubject);
+      if (selectedGrade) params.append('grade', selectedGrade);
+      if (searchTerm) params.append('search', searchTerm);
+      if (sortBy) params.append('sortBy', sortBy);
+
+      const response = await apiService.getNotes(Object.fromEntries(params));
+      setNotes(response.data.notes || []);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm, sortBy]);
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const response = await apiService.getCategories();
+      setCategories(response.data || []);
+    } catch (error: any) {
+      console.error('Categories load error:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNotes();
+    loadCategories();
+  }, [loadNotes, loadCategories]);
 
   // Authentication kontrolü - giriş yapmamış kullanıcıları ana sayfaya yönlendir
   if (!isAuthenticated) {
@@ -134,39 +167,6 @@ const NotesPage: React.FC = () => {
       </div>
     );
   }
-
-  const loadNotes = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedSubject) params.append('subject', selectedSubject);
-      if (selectedGrade) params.append('grade', selectedGrade);
-      if (searchTerm) params.append('search', searchTerm);
-      if (sortBy) params.append('sortBy', sortBy);
-
-      const response = await apiService.getNotes(Object.fromEntries(params));
-      setNotes(response.data.notes || []);
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm, sortBy]);
-
-  const loadCategories = useCallback(async () => {
-    try {
-      const response = await apiService.getCategories();
-      setCategories(response.data || []);
-    } catch (error: any) {
-      console.error('Categories load error:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadNotes();
-    loadCategories();
-  }, [loadNotes, loadCategories]);
 
   const handleDownload = async (noteId: string, googleDriveUrl: string) => {
     try {
