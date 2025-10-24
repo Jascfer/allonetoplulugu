@@ -87,10 +87,23 @@ app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || 5000,
+    mongodb: process.env.MONGODB_URI ? 'Connected' : 'Not configured'
+  });
+});
+
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  res.status(200).json({
+    message: 'Backend is working!',
+    timestamp: new Date().toISOString(),
+    headers: req.headers,
+    origin: req.get('Origin')
   });
 });
 
