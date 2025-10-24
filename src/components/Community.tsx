@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { 
   Users, 
   MessageCircle, 
-  Calendar, 
   TrendingUp,
   Award,
   BookOpen,
@@ -209,7 +208,7 @@ const Community: React.FC = () => {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'discussion': return <MessageCircle size={20} />;
-      case 'question': return <Target size={20} />;
+      case 'question': return <Zap size={20} />;
       case 'achievement': return <Award size={20} />;
       case 'resource': return <BookOpen size={20} />;
       default: return <MessageCircle size={20} />;
@@ -457,7 +456,7 @@ const Community: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Target size={18} />
+          <Zap size={18} />
           Sorular
         </motion.button>
         <motion.button
