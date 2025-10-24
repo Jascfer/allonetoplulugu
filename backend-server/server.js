@@ -42,9 +42,14 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:3000',
     'https://allonetoplulugu.tr',
     'https://www.allonetoplulugu.tr',
-    'https://allonetoplulugu-xxxxx.vercel.app'
+    'https://allonetoplulugu-xxxxx.vercel.app',
+    'https://*.vercel.app',
+    'https://*.railway.app'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
 
 // Logging

@@ -43,15 +43,50 @@ const NotesPage: React.FC = () => {
   const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedSubject) params.append('subject', selectedSubject);
-      if (selectedGrade) params.append('grade', selectedGrade);
-      if (searchTerm) params.append('search', searchTerm);
-      if (sortBy) params.append('sortBy', sortBy);
-
-      const response = await apiService.getNotes(Object.fromEntries(params));
-      setNotes(response.data.notes || []);
+      // Mock data for testing
+      const mockNotes = [
+        {
+          _id: '1',
+          title: 'Matematik - Fonksiyonlar',
+          description: 'Fonksiyonlar konusunda detaylı notlar ve örnekler',
+          category: { _id: '1', name: 'Matematik', description: 'Matematik notları' },
+          googleDriveUrl: 'https://drive.google.com/file/d/1example/view',
+          downloadCount: 150,
+          viewCount: 300,
+          rating: 4.8,
+          tags: ['fonksiyonlar', 'matematik', '10. sınıf'],
+          author: { name: 'Matematik Öğretmeni' },
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: '2',
+          title: 'Fizik - Hareket',
+          description: 'Hareket konusunda temel kavramlar ve formüller',
+          category: { _id: '2', name: 'Fizik', description: 'Fizik notları' },
+          googleDriveUrl: 'https://drive.google.com/file/d/2example/view',
+          downloadCount: 120,
+          viewCount: 250,
+          rating: 4.6,
+          tags: ['hareket', 'fizik', '11. sınıf'],
+          author: { name: 'Fizik Öğretmeni' },
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: '3',
+          title: 'Kimya - Atom Teorisi',
+          description: 'Atom teorisi ve periyodik tablo konuları',
+          category: { _id: '3', name: 'Kimya', description: 'Kimya notları' },
+          googleDriveUrl: 'https://drive.google.com/file/d/3example/view',
+          downloadCount: 90,
+          viewCount: 180,
+          rating: 4.4,
+          tags: ['atom', 'kimya', '9. sınıf'],
+          author: { name: 'Kimya Öğretmeni' },
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      setNotes(mockNotes);
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -61,8 +96,15 @@ const NotesPage: React.FC = () => {
 
   const loadCategories = useCallback(async () => {
     try {
-      const response = await apiService.getCategories();
-      setCategories(response.data || []);
+      // Mock categories for testing
+      const mockCategories = [
+        { _id: '1', name: 'Matematik', description: 'Matematik notları' },
+        { _id: '2', name: 'Fizik', description: 'Fizik notları' },
+        { _id: '3', name: 'Kimya', description: 'Kimya notları' },
+        { _id: '4', name: 'Biyoloji', description: 'Biyoloji notları' },
+        { _id: '5', name: 'Türkçe', description: 'Türkçe notları' }
+      ];
+      setCategories(mockCategories);
     } catch (error: any) {
       console.error('Categories load error:', error);
     }
