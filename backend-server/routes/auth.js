@@ -155,38 +155,5 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/auth/make-admin/:email
-// @desc    Make user admin (for development purposes)
-// @access  Public (should be restricted in production)
-router.put('/make-admin/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    user.role = 'admin';
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'User role updated to admin',
-      data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Make admin error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 module.exports = router;
 
