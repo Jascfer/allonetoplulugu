@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import PopularNotes from './components/PopularNotes';
+import NotesPage from './components/NotesPage';
 import DailyQuestion from './components/DailyQuestion';
 import RecentNotes from './components/RecentNotes';
-import NotesDisplay from './components/NotesDisplay';
 import AdminPanel from './components/AdminPanel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -86,24 +88,31 @@ function AppContent() {
     <div style={appStyle}>
       <Header />
       <main>
-        <Hero />
-        <div id="notes">
-          <NotesDisplay />
-        </div>
-        
-        {isAdmin && (
-          <div id="admin">
-            <AdminPanel />
-          </div>
-        )}
-        
-        <div id="daily-questions">
-          <DailyQuestion />
-        </div>
-        
-        <div id="community">
-          <RecentNotes />
-        </div>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Hero />
+              <div id="notes">
+                <PopularNotes />
+              </div>
+              {isAdmin && (
+                <div id="admin">
+                  <AdminPanel />
+                </div>
+              )}
+              <div id="daily-questions">
+                <DailyQuestion />
+              </div>
+              <div id="community">
+                <RecentNotes />
+              </div>
+            </>
+          } />
+          <Route path="/notes" element={<NotesPage />} />
+          {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+          <Route path="/daily-questions" element={<DailyQuestion />} />
+          <Route path="/community" element={<RecentNotes />} />
+        </Routes>
       </main>
       
       {/* Footer */}
@@ -174,7 +183,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <AppContent />
+      </Router>
     </AuthProvider>
   );
 }

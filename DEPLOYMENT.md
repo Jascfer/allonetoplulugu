@@ -186,3 +186,4 @@ NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 - [ ] API bağlantısını test et
 - [ ] Dosya yükleme test et
 - [ ] Authentication test et
+

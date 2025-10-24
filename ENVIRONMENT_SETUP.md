@@ -72,3 +72,4 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/all-one-toplulug
 JWT_SECRET=your-super-secret-jwt-key
 FRONTEND_URL=https://your-frontend-domain.com
 ```
+

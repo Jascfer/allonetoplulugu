@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen } from 'lucide-react';
+import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import apiService from '../services/api';
 
 interface Category {
@@ -27,7 +28,7 @@ interface Note {
   createdAt: string;
 }
 
-const NotesDisplay: React.FC = () => {
+const NotesPage: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ const NotesDisplay: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -46,52 +48,39 @@ const NotesDisplay: React.FC = () => {
       if (selectedSubject) params.append('subject', selectedSubject);
       if (selectedGrade) params.append('grade', selectedGrade);
       if (searchTerm) params.append('search', searchTerm);
+      if (sortBy) params.append('sortBy', sortBy);
 
-      const response = await apiService.request(`/api/notes?${params.toString()}`);
+      const response = await apiService.getNotes(Object.fromEntries(params));
       setNotes(response.data.notes || []);
     } catch (error: any) {
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm]);
+  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm, sortBy]);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
-      const response = await apiService.request('/api/categories');
+      const response = await apiService.getCategories();
       setCategories(response.data || []);
     } catch (error: any) {
       console.error('Categories load error:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadNotes();
     loadCategories();
-  }, [loadNotes]);
+  }, [loadNotes, loadCategories]);
 
   const handleDownload = async (noteId: string, googleDriveUrl: string) => {
     try {
-      await apiService.request(`/api/notes/${noteId}/download`, {
-        method: 'PUT'
-      });
-      
-      // Open Google Drive link in new tab
+      await apiService.downloadNote(noteId);
       window.open(googleDriveUrl, '_blank');
     } catch (error: any) {
       setError(error.message);
     }
   };
-
-  const filteredNotes = notes.filter(note => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      note.title.toLowerCase().includes(searchLower) ||
-      note.description.toLowerCase().includes(searchLower) ||
-      note.tags.some(tag => tag.toLowerCase().includes(searchLower))
-    );
-  });
 
   const containerStyle = {
     padding: '80px 20px 20px 20px',
@@ -126,6 +115,29 @@ const NotesDisplay: React.FC = () => {
   const headerContentStyle = {
     position: 'relative' as const,
     zIndex: 1,
+  };
+
+  const backButtonStyle = {
+    position: 'absolute' as const,
+    top: '20px',
+    left: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 16px',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '10px',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '500',
+    transition: 'all 0.3s ease',
+    zIndex: 2,
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      color: 'white',
+    },
   };
 
   const searchContainerStyle = {
@@ -308,6 +320,11 @@ const NotesDisplay: React.FC = () => {
       >
         <div style={headerOverlayStyle}></div>
         <div style={headerContentStyle}>
+          <Link to="/" style={backButtonStyle}>
+            <ArrowLeft size={16} />
+            Ana Sayfaya Dön
+          </Link>
+          
           <motion.h1
             style={{
               fontSize: '3.5rem',
@@ -321,7 +338,7 @@ const NotesDisplay: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.4 }}
           >
-            📚 Notlar
+            📚 Tüm Notlar
           </motion.h1>
           <motion.p
             style={{ fontSize: '1.2rem', color: '#cbd5e1', maxWidth: '700px', margin: '0 auto' }}
@@ -392,6 +409,15 @@ const NotesDisplay: React.FC = () => {
           >
             <Filter size={20} /> Filtreler
           </motion.button>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={selectStyle}
+          >
+            <option value="newest">En Yeni</option>
+            <option value="popular">Popüler</option>
+            <option value="top">En İyi</option>
+          </select>
         </div>
 
         {showFilters && (
@@ -454,7 +480,7 @@ const NotesDisplay: React.FC = () => {
         )}
 
         <div style={{ fontSize: '14px', color: '#cbd5e1', textAlign: 'center', marginTop: '15px' }}>
-          {filteredNotes.length} not bulundu
+          {notes.length} not bulundu
         </div>
       </motion.div>
 
@@ -486,7 +512,7 @@ const NotesDisplay: React.FC = () => {
         >
           <div style={{ fontSize: '18px', color: '#cbd5e1' }}>Notlar yükleniyor...</div>
         </motion.div>
-      ) : filteredNotes.length === 0 ? (
+      ) : notes.length === 0 ? (
         <motion.div
           style={{
             textAlign: 'center',
@@ -523,7 +549,7 @@ const NotesDisplay: React.FC = () => {
             },
           }}
         >
-          {filteredNotes.map(note => (
+          {notes.map(note => (
             <motion.div
               key={note._id}
               style={noteCardStyle}
@@ -636,4 +662,4 @@ const NotesDisplay: React.FC = () => {
   );
 };
 
-export default NotesDisplay;
+export default NotesPage;

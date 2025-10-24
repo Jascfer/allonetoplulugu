@@ -40,3 +40,4 @@ categorySchema.index({ subject: 1, grade: 1 });
 categorySchema.index({ name: 'text', description: 'text' });
 
 module.exports = mongoose.model('Category', categorySchema);
+

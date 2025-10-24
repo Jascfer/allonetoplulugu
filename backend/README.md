@@ -146,3 +146,4 @@ npm start        # Production mode
 - JWT token süresi varsayılan 7 gündür
 - Rate limit: IP başına 15 dakikada 100 istek
 - Desteklenen dosya türleri: PDF, DOC, DOCX, TXT
+

@@ -86,3 +86,4 @@ noteSchema.virtual('averageRating').get(function() {
 noteSchema.set('toJSON', { virtuals: true });
 
 module.exports = mongoose.model('Note', noteSchema);
+

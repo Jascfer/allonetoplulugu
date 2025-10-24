@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X, User } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';
@@ -8,10 +9,10 @@ import ProfileModal from './auth/ProfileModal';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
   const { user, isAuthenticated } = useAuth();
 
@@ -40,10 +41,11 @@ const Header: React.FC = () => {
   }, []);
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveSection(sectionId);
+    if (location.pathname === '/') {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -138,48 +140,34 @@ const Header: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
-          <Logo />
+          <Link to="/">
+            <Logo />
+          </Link>
         </motion.div>
 
         {/* Desktop Navigation */}
         <nav style={{ ...navStyle, display: !isMobile ? 'flex' : 'none' }}>
-          <motion.span
-            style={navLinkStyle(activeSection === 'notes')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('notes')}
-          >
+          <Link to="/" style={navLinkStyle(location.pathname === '/')}>
+            Ana Sayfa
+          </Link>
+
+          <Link to="/notes" style={navLinkStyle(location.pathname === '/notes')}>
             Notlar
-          </motion.span>
-          
+          </Link>
+
           {isAdmin && (
-            <motion.span
-              style={navLinkStyle(activeSection === 'admin')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection('admin')}
-            >
+            <Link to="/admin" style={navLinkStyle(location.pathname === '/admin')}>
               Admin Panel
-            </motion.span>
+            </Link>
           )}
-          
-          <motion.span
-            style={navLinkStyle(activeSection === 'daily-questions')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('daily-questions')}
-          >
+
+          <Link to="/daily-questions" style={navLinkStyle(location.pathname === '/daily-questions')}>
             Günlük Sorular
-          </motion.span>
-          
-          <motion.span
-            style={navLinkStyle(activeSection === 'community')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => scrollToSection('community')}
-          >
+          </Link>
+
+          <Link to="/community" style={navLinkStyle(location.pathname === '/community')}>
             Topluluk
-          </motion.span>
+          </Link>
         </nav>
 
         {/* Desktop Auth Button */}
@@ -226,47 +214,43 @@ const Header: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'notes'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('notes');
-                setIsMobileMenuOpen(false);
-              }}
+            <Link
+              to="/"
+              style={{ ...navLinkStyle(location.pathname === '/'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Ana Sayfa
+            </Link>
+            <Link
+              to="/notes"
+              style={{ ...navLinkStyle(location.pathname === '/notes'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Notlar
-            </span>
-            
+            </Link>
             {isAdmin && (
-              <span 
-                style={{ ...navLinkStyle(activeSection === 'admin'), padding: '12px 0' }}
-                onClick={() => {
-                  scrollToSection('admin');
-                  setIsMobileMenuOpen(false);
-                }}
+              <Link
+                to="/admin"
+                style={{ ...navLinkStyle(location.pathname === '/admin'), padding: '12px 0' }}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Admin Panel
-              </span>
+              </Link>
             )}
-            
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'daily-questions'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('daily-questions');
-                setIsMobileMenuOpen(false);
-              }}
+            <Link
+              to="/daily-questions"
+              style={{ ...navLinkStyle(location.pathname === '/daily-questions'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Günlük Sorular
-            </span>
-            
-            <span 
-              style={{ ...navLinkStyle(activeSection === 'community'), padding: '12px 0' }}
-              onClick={() => {
-                scrollToSection('community');
-                setIsMobileMenuOpen(false);
-              }}
+            </Link>
+            <Link
+              to="/community"
+              style={{ ...navLinkStyle(location.pathname === '/community'), padding: '12px 0' }}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Topluluk
-            </span>
+            </Link>
           </nav>
 
           {/* Mobile Auth Button */}

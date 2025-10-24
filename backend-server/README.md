@@ -75,3 +75,4 @@ npm start
 - `PORT` - Server port (varsayılan: 5000)
 - `NODE_ENV` - Environment (development/production)
 - `FRONTEND_URL` - Frontend URL (CORS için)
+
