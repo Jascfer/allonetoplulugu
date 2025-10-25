@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 
@@ -17,6 +17,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const [success, setSuccess] = useState('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [userStats, setUserStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   
   // Profile form
   const [profileForm, setProfileForm] = useState({
@@ -124,6 +126,24 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
+  const loadUserStats = async () => {
+    try {
+      setLoadingStats(true);
+      const response = await apiService.getUserStats();
+      setUserStats(response.data);
+    } catch (error) {
+      console.error('Failed to load user stats:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    if (show && activeTab === 'activity') {
+      loadUserStats();
+    }
+  }, [show, activeTab]);
 
   const modalStyle = {
     position: 'fixed' as const,
@@ -548,15 +568,251 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
           {/* Activity Tab */}
           {activeTab === 'activity' && (
             <div>
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <Settings size={64} style={{ color: '#94a3b8', marginBottom: '20px' }} />
-                <h3 style={{ fontSize: '1.3rem', color: '#cbd5e1', marginBottom: '10px' }}>
-                  Aktivite Geçmişi
-                </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-                  Yakında kullanıcı aktivitelerinizi burada görebileceksiniz.
-                </p>
-              </div>
+              {loadingStats ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <div style={{ 
+                    width: '40px', 
+                    height: '40px', 
+                    border: '3px solid rgba(34, 197, 94, 0.3)', 
+                    borderTop: '3px solid #22c55e', 
+                    borderRadius: '50%', 
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 20px'
+                  }} />
+                  <p style={{ color: '#94a3b8' }}>İstatistikler yükleniyor...</p>
+                </div>
+              ) : userStats ? (
+                <div>
+                  {/* Statistics Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                    <motion.div
+                      style={{
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        textAlign: 'center'
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <FileText size={32} style={{ color: '#22c55e', marginBottom: '10px' }} />
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '5px' }}>
+                        {userStats.notesCount}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#94a3b8' }}>Yüklenen Not</div>
+                    </motion.div>
+
+                    <motion.div
+                      style={{
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        textAlign: 'center'
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Download size={32} style={{ color: '#3b82f6', marginBottom: '10px' }} />
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '5px' }}>
+                        {userStats.totalDownloads}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#94a3b8' }}>Toplam İndirme</div>
+                    </motion.div>
+
+                    <motion.div
+                      style={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        textAlign: 'center'
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Heart size={32} style={{ color: '#f59e0b', marginBottom: '10px' }} />
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '5px' }}>
+                        {userStats.totalLikesReceived}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#94a3b8' }}>Toplam Beğeni</div>
+                    </motion.div>
+
+                    <motion.div
+                      style={{
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        textAlign: 'center'
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <MessageCircle size={32} style={{ color: '#8b5cf6', marginBottom: '10px' }} />
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '5px' }}>
+                        {userStats.postsCount + userStats.answersCount}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#94a3b8' }}>Toplam Katkı</div>
+                    </motion.div>
+                  </div>
+
+                  {/* Detailed Breakdown */}
+                  <div style={{ 
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)', 
+                    borderRadius: '15px', 
+                    padding: '25px',
+                    border: '1px solid rgba(51, 65, 85, 0.3)'
+                  }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <BarChart3 size={20} />
+                      Detaylı İstatistikler
+                    </h3>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                      <div>
+                        <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '10px' }}>Notlar</h4>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.6' }}>
+                          <div>• Yüklenen notlar: {userStats.notesCount}</div>
+                          <div>• Not beğenileri: {userStats.noteLikes}</div>
+                          <div>• Toplam indirme: {userStats.totalDownloads}</div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '10px' }}>Topluluk</h4>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.6' }}>
+                          <div>• Gönderilen postlar: {userStats.postsCount}</div>
+                          <div>• Post beğenileri: {userStats.communityLikes}</div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '10px' }}>Günlük Sorular</h4>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.6' }}>
+                          <div>• Verilen cevaplar: {userStats.answersCount}</div>
+                          <div>• Cevap beğenileri: {userStats.answerLikes}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Achievement Badges */}
+                  <div style={{ 
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)', 
+                    borderRadius: '15px', 
+                    padding: '25px',
+                    border: '1px solid rgba(51, 65, 85, 0.3)',
+                    marginTop: '20px'
+                  }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Award size={20} />
+                      Başarı Rozetleri
+                    </h3>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+                      {userStats.notesCount >= 5 && (
+                        <motion.div
+                          style={{
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            border: '1px solid #22c55e',
+                            borderRadius: '10px',
+                            padding: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '200px'
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <FileText size={24} style={{ color: '#22c55e' }} />
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>Not Ustası</div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>5+ not yükledi</div>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {userStats.totalDownloads >= 100 && (
+                        <motion.div
+                          style={{
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            border: '1px solid #3b82f6',
+                            borderRadius: '10px',
+                            padding: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '200px'
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <TrendingUp size={24} style={{ color: '#3b82f6' }} />
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>Popüler Yazar</div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>100+ indirme</div>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {userStats.totalLikesReceived >= 50 && (
+                        <motion.div
+                          style={{
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            border: '1px solid #f59e0b',
+                            borderRadius: '10px',
+                            padding: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '200px'
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <Heart size={24} style={{ color: '#f59e0b' }} />
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>Sevilen Üye</div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>50+ beğeni</div>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {userStats.postsCount >= 10 && (
+                        <motion.div
+                          style={{
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            border: '1px solid #8b5cf6',
+                            borderRadius: '10px',
+                            padding: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '200px'
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <MessageCircle size={24} style={{ color: '#8b5cf6' }} />
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>Aktif Katılımcı</div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>10+ topluluk postu</div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <Settings size={64} style={{ color: '#94a3b8', marginBottom: '20px' }} />
+                  <h3 style={{ fontSize: '1.3rem', color: '#cbd5e1', marginBottom: '10px' }}>
+                    İstatistikler Yüklenemedi
+                  </h3>
+                  <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                    Kullanıcı istatistiklerinizi yüklerken bir hata oluştu.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

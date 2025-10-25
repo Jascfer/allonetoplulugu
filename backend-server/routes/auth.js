@@ -284,5 +284,74 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   }
 });
 
+// @route   GET /api/auth/stats
+// @desc    Get user statistics
+// @access  Private
+router.get('/stats', auth, async (req, res) => {
+  try {
+    const Note = require('../models/Note');
+    const CommunityPost = require('../models/CommunityPost');
+    const DailyQuestion = require('../models/DailyQuestion');
+    
+    const userId = req.userId;
+    
+    // Get user's notes count
+    const notesCount = await Note.countDocuments({ author: userId });
+    
+    // Get total downloads from user's notes
+    const userNotes = await Note.find({ author: userId }).select('downloadCount');
+    const totalDownloads = userNotes.reduce((sum, note) => sum + note.downloadCount, 0);
+    
+    // Get user's community posts count
+    const postsCount = await CommunityPost.countDocuments({ author: userId });
+    
+    // Get user's answers count
+    const answersCount = await DailyQuestion.countDocuments({ 
+      'answers.author': userId 
+    });
+    
+    // Get user's total likes received
+    const userNotesWithLikes = await Note.find({ author: userId }).select('ratingCount');
+    const totalLikes = userNotesWithLikes.reduce((sum, note) => sum + note.ratingCount, 0);
+    
+    // Get user's community posts likes
+    const userPosts = await CommunityPost.find({ author: userId }).select('likes');
+    const communityLikes = userPosts.reduce((sum, post) => sum + post.likes.length, 0);
+    
+    // Get user's answers likes
+    const userAnswers = await DailyQuestion.find({ 
+      'answers.author': userId 
+    }).select('answers');
+    
+    let answerLikes = 0;
+    userAnswers.forEach(question => {
+      question.answers.forEach(answer => {
+        if (answer.author.toString() === userId) {
+          answerLikes += answer.likes.length;
+        }
+      });
+    });
+    
+    const totalLikesReceived = totalLikes + communityLikes + answerLikes;
+    
+    res.json({
+      success: true,
+      data: {
+        notesCount,
+        totalDownloads,
+        postsCount,
+        answersCount,
+        totalLikesReceived,
+        communityLikes,
+        answerLikes,
+        noteLikes: totalLikes
+      }
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
 

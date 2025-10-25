@@ -295,6 +295,11 @@ class ApiService {
       method: 'PUT',
     });
   }
+
+  // User Statistics API
+  async getUserStats() {
+    return this.request('/api/auth/stats');
+  }
 }
 
 const apiService = new ApiService();
