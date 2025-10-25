@@ -253,6 +253,48 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Daily Questions API
+  async getDailyQuestions(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/api/daily-questions${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getTodaysQuestion() {
+    return this.request('/api/daily-questions/today');
+  }
+
+  async createDailyQuestion(questionData) {
+    return this.request('/api/daily-questions', {
+      method: 'POST',
+      body: JSON.stringify(questionData),
+    });
+  }
+
+  async submitAnswer(questionId, content) {
+    return this.request(`/api/daily-questions/${questionId}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async likeQuestion(questionId) {
+    return this.request(`/api/daily-questions/${questionId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async likeAnswer(questionId, answerId) {
+    return this.request(`/api/daily-questions/${questionId}/answers/${answerId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async acceptAnswer(questionId, answerId) {
+    return this.request(`/api/daily-questions/${questionId}/answers/${answerId}/accept`, {
+      method: 'PUT',
+    });
+  }
 }
 
 const apiService = new ApiService();

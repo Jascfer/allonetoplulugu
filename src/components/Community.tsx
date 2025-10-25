@@ -61,11 +61,6 @@ const Community: React.FC = () => {
   const [showNewPost, setShowNewPost] = useState(false);
   const [submittingPost, setSubmittingPost] = useState(false);
 
-  // Load posts from API
-  useEffect(() => {
-    loadPosts();
-  }, [activeTab, loadPosts]);
-
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
@@ -83,6 +78,11 @@ const Community: React.FC = () => {
       setLoading(false);
     }
   }, [activeTab]);
+
+  // Load posts from API
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
 
   const handleLikePost = async (postId: string) => {
     if (!isAuthenticated) return;

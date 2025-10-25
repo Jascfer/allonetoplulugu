@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, 
@@ -10,6 +10,7 @@ import {
   Award
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import apiService from '../services/api';
 
 interface DailyQuestion {
   _id: string;
@@ -45,72 +46,36 @@ const DailyQuestions: React.FC = () => {
   const [answerText, setAnswerText] = useState('');
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
 
-  // Mock data for now - will be replaced with API calls
-  useEffect(() => {
-    const mockQuestions: DailyQuestion[] = [
-      {
-        _id: '1',
-        question: 'Matematikte limit kavramını nasıl açıklarsınız?',
-        description: 'Limit kavramının geometrik ve cebirsel açıklamasını yaparak, günlük hayattan örnekler verin.',
-        category: 'Matematik',
-        difficulty: 'medium',
-        points: 50,
-        createdAt: new Date().toISOString(),
-        answers: [
-          {
-            _id: '1',
-            content: 'Limit, bir fonksiyonun belirli bir noktaya yaklaşırken aldığı değerdir. Geometrik olarak, fonksiyonun grafiğinin o noktaya yaklaşırken gösterdiği davranıştır.',
-            author: {
-              _id: '1',
-              name: 'Ahmet Yılmaz',
-              avatar: 'https://via.placeholder.com/40/22c55e/ffffff?text=AY'
-            },
-            createdAt: new Date(Date.now() - 3600000).toISOString(),
-            likes: ['1', '2'],
-            isAccepted: true
-          }
-        ],
-        likes: ['1', '2', '3'],
-        isAnswered: false
-      },
-      {
-        _id: '2',
-        question: 'Photosentez sürecinde hangi faktörler etkilidir?',
-        description: 'Bitkilerin fotosentez yapmasını etkileyen çevresel ve biyolojik faktörleri açıklayın.',
-        category: 'Biyoloji',
-        difficulty: 'easy',
-        points: 30,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        answers: [],
-        likes: ['1'],
-        isAnswered: false
+  const loadQuestions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getDailyQuestions({ limit: '10' });
+      const questions = response.data.questions || [];
+      setQuestions(questions);
+      if (questions.length > 0) {
+        setCurrentQuestion(questions[0]);
       }
-    ];
-    
-    setQuestions(mockQuestions);
-    setCurrentQuestion(mockQuestions[0]);
-    setLoading(false);
+    } catch (error) {
+      console.error('Failed to load questions:', error);
+      setQuestions([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Load questions from API
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const handleAnswerSubmit = async () => {
     if (!answerText.trim() || !isAuthenticated || !currentQuestion) return;
     
     setSubmittingAnswer(true);
     try {
-      // Mock answer submission
-      const newAnswer: Answer = {
-        _id: Date.now().toString(),
-        content: answerText,
-        author: {
-          _id: user!.id,
-          name: user!.name,
-          avatar: user!.avatar
-        },
-        createdAt: new Date().toISOString(),
-        likes: [],
-        isAccepted: false
-      };
-
+      const response = await apiService.submitAnswer(currentQuestion._id, answerText);
+      const newAnswer = response.data.answer;
+      
       const updatedQuestion = {
         ...currentQuestion,
         answers: [...currentQuestion.answers, newAnswer]
@@ -125,35 +90,58 @@ const DailyQuestions: React.FC = () => {
     }
   };
 
-  const handleLikeQuestion = (questionId: string) => {
+  const handleLikeQuestion = async (questionId: string) => {
     if (!isAuthenticated) return;
     
-    setQuestions(prev => prev.map(q => 
-      q._id === questionId 
-        ? { ...q, likes: q.likes.includes(user!.id) 
-            ? q.likes.filter(id => id !== user!.id)
-            : [...q.likes, user!.id]
-          }
-        : q
-    ));
+    try {
+      const response = await apiService.likeQuestion(questionId);
+      setQuestions(prev => prev.map(q => 
+        q._id === questionId 
+          ? { 
+              ...q, 
+              likes: response.data.isLiked 
+                ? [...q.likes, user!.id]
+                : q.likes.filter(id => id !== user!.id)
+            }
+          : q
+      ));
+      
+      if (currentQuestion && currentQuestion._id === questionId) {
+        setCurrentQuestion(prev => prev ? {
+          ...prev,
+          likes: response.data.isLiked 
+            ? [...prev.likes, user!.id]
+            : prev.likes.filter(id => id !== user!.id)
+        } : null);
+      }
+    } catch (error) {
+      console.error('Like question error:', error);
+    }
   };
 
-  const handleLikeAnswer = (answerId: string) => {
+  const handleLikeAnswer = async (answerId: string) => {
     if (!isAuthenticated || !currentQuestion) return;
     
-    const updatedAnswers = currentQuestion.answers.map(answer =>
-      answer._id === answerId
-        ? { ...answer, likes: answer.likes.includes(user!.id)
-            ? answer.likes.filter(id => id !== user!.id)
-            : [...answer.likes, user!.id]
-          }
-        : answer
-    );
-
-    setCurrentQuestion({
-      ...currentQuestion,
-      answers: updatedAnswers
-    });
+    try {
+      const response = await apiService.likeAnswer(currentQuestion._id, answerId);
+      const updatedAnswers = currentQuestion.answers.map(answer =>
+        answer._id === answerId 
+          ? { 
+              ...answer, 
+              likes: response.data.isLiked 
+                ? [...answer.likes, user!.id]
+                : answer.likes.filter(id => id !== user!.id)
+            }
+          : answer
+      );
+      
+      setCurrentQuestion(prev => prev ? {
+        ...prev,
+        answers: updatedAnswers
+      } : null);
+    } catch (error) {
+      console.error('Like answer error:', error);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
