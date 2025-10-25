@@ -19,11 +19,11 @@ const noteSchema = new mongoose.Schema({
   },
   googleDriveLink: {
     type: String,
-    required: [true, 'Download URL is required']
+    required: false
   },
   downloadUrl: {
     type: String,
-    required: [true, 'Download URL is required']
+    required: false
   },
   subject: {
     type: String,

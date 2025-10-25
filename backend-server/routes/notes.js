@@ -113,6 +113,14 @@ router.post('/', auth, adminAuth, async (req, res) => {
       });
     }
     
+    // Validate download URL
+    if (!downloadUrl && !googleDriveLink) {
+      return res.status(400).json({
+        success: false,
+        error: 'İndirme linki gereklidir'
+      });
+    }
+    
     // Validate category exists
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
