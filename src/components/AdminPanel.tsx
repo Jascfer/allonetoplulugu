@@ -20,7 +20,11 @@ import {
   Users,
   Shield,
   UserCheck,
-  UserX
+  UserX,
+  MessageCircle,
+  Zap,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import apiService from '../services/api';
 
@@ -74,6 +78,7 @@ const AdminPanel: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -166,6 +171,9 @@ const AdminPanel: React.FC = () => {
 
         const response = await apiService.getUsers(Object.fromEntries(params));
         setUsers(response.data.users || []);
+      } else if (activeTab === 'analytics') {
+        const response = await apiService.getAnalytics();
+        setAnalytics(response.data);
       }
     } catch (error: any) {
       setError(error.message);
@@ -1220,61 +1228,243 @@ const AdminPanel: React.FC = () => {
 
             {activeTab === 'analytics' && (
               <div>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: '600', marginBottom: '20px' }}>İstatistikler</h2>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: '600', marginBottom: '20px' }}>Sistem Analitikleri</h2>
                 
-                <div style={statsContainerStyle}>
-                  <motion.div
-                    style={statCardStyle}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <FileText size={48} style={{ color: '#22c55e', marginBottom: '15px' }} />
-                    <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
-                      {notes.length}
-                    </h3>
-                    <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam Not</p>
-                  </motion.div>
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '60px' }}>
+                    <div style={{ fontSize: '18px', color: '#cbd5e1' }}>Analitikler yükleniyor...</div>
+                  </div>
+                ) : analytics ? (
+                  <>
+                    {/* Overview Cards */}
+                    <div style={statsContainerStyle}>
+                      <motion.div
+                        style={statCardStyle}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <Users size={48} style={{ color: '#22c55e', marginBottom: '15px' }} />
+                        <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
+                          {analytics.overview.totalUsers}
+                        </h3>
+                        <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam Kullanıcı</p>
+                        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '5px' }}>
+                          {analytics.overview.activeUsers} aktif
+                        </div>
+                      </motion.div>
 
-                  <motion.div
-                    style={statCardStyle}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <BookOpen size={48} style={{ color: '#3b82f6', marginBottom: '15px' }} />
-                    <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
-                      {categories.length}
-                    </h3>
-                    <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam Kategori</p>
-                  </motion.div>
+                      <motion.div
+                        style={statCardStyle}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <FileText size={48} style={{ color: '#3b82f6', marginBottom: '15px' }} />
+                        <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
+                          {analytics.overview.totalNotes}
+                        </h3>
+                        <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam Not</p>
+                        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '5px' }}>
+                          {analytics.overview.approvedNotes} onaylı
+                        </div>
+                      </motion.div>
 
-                  <motion.div
-                    style={statCardStyle}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <Download size={48} style={{ color: '#f59e0b', marginBottom: '15px' }} />
-                    <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
-                      {notes.reduce((sum, note) => sum + note.downloadCount, 0)}
-                    </h3>
-                    <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam İndirme</p>
-                  </motion.div>
+                      <motion.div
+                        style={statCardStyle}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <MessageCircle size={48} style={{ color: '#f59e0b', marginBottom: '15px' }} />
+                        <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
+                          {analytics.overview.totalPosts}
+                        </h3>
+                        <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Topluluk Postları</p>
+                      </motion.div>
 
-                  <motion.div
-                    style={statCardStyle}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <Eye size={48} style={{ color: '#8b5cf6', marginBottom: '15px' }} />
-                    <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
-                      {notes.reduce((sum, note) => sum + note.viewCount, 0)}
-                    </h3>
-                    <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Toplam Görüntüleme</p>
-                  </motion.div>
-                </div>
+                      <motion.div
+                        style={statCardStyle}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <Zap size={48} style={{ color: '#8b5cf6', marginBottom: '15px' }} />
+                        <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px', color: 'white' }}>
+                          {analytics.overview.totalQuestions}
+                        </h3>
+                        <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Günlük Sorular</p>
+                      </motion.div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div style={{ 
+                      backgroundColor: 'rgba(30, 41, 59, 0.5)', 
+                      borderRadius: '15px', 
+                      padding: '25px',
+                      border: '1px solid rgba(51, 65, 85, 0.3)',
+                      marginTop: '30px'
+                    }}>
+                      <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Activity size={20} />
+                        Son 30 Gün Aktivitesi
+                      </h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: '700', color: '#22c55e', marginBottom: '5px' }}>
+                            {analytics.recentActivity.recentUsers}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#cbd5e1' }}>Yeni Kullanıcı</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: '700', color: '#3b82f6', marginBottom: '5px' }}>
+                            {analytics.recentActivity.recentNotes}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#cbd5e1' }}>Yeni Not</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: '700', color: '#f59e0b', marginBottom: '5px' }}>
+                            {analytics.recentActivity.recentPosts}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#cbd5e1' }}>Yeni Post</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Top Categories */}
+                    {analytics.categoryStats && analytics.categoryStats.length > 0 && (
+                      <div style={{ 
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)', 
+                        borderRadius: '15px', 
+                        padding: '25px',
+                        border: '1px solid rgba(51, 65, 85, 0.3)',
+                        marginTop: '30px'
+                      }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <BookOpen size={20} />
+                          En Popüler Kategoriler
+                        </h3>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+                          {analytics.categoryStats.map((category: any, index: number) => (
+                            <motion.div
+                              key={category._id}
+                              style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '12px',
+                                padding: '15px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '15px'
+                              }}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                            >
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: category.categoryInfo?.color || '#3b82f6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px'
+                              }}>
+                                {category.categoryInfo?.icon ? 
+                                  iconMap[category.categoryInfo.icon] || '📚' : 
+                                  '📚'
+                                }
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '16px', fontWeight: '600', color: 'white', marginBottom: '2px' }}>
+                                  {category.categoryInfo?.name || 'Bilinmeyen'}
+                                </div>
+                                <div style={{ fontSize: '14px', color: '#94a3b8' }}>
+                                  {category.count} not
+                                </div>
+                              </div>
+                              <div style={{ fontSize: '18px', fontWeight: '700', color: '#22c55e' }}>
+                                #{index + 1}
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* User Growth Chart */}
+                    {analytics.userGrowth && analytics.userGrowth.length > 0 && (
+                      <div style={{ 
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)', 
+                        borderRadius: '15px', 
+                        padding: '25px',
+                        border: '1px solid rgba(51, 65, 85, 0.3)',
+                        marginTop: '30px'
+                      }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <TrendingUp size={20} />
+                          Kullanıcı Büyümesi (Son 7 Gün)
+                        </h3>
+                        
+                        <div style={{ display: 'flex', alignItems: 'end', gap: '10px', height: '200px', padding: '20px 0' }}>
+                          {analytics.userGrowth.map((day: any, index: number) => {
+                            const maxCount = Math.max(...analytics.userGrowth.map((d: any) => d.count));
+                            const height = (day.count / maxCount) * 150;
+                            
+                            return (
+                              <motion.div
+                                key={day.date}
+                                style={{
+                                  flex: 1,
+                                  backgroundColor: '#22c55e',
+                                  borderRadius: '4px 4px 0 0',
+                                  minHeight: '4px',
+                                  position: 'relative',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'flex-end'
+                                }}
+                                initial={{ height: 0 }}
+                                animate={{ height: `${height}px` }}
+                                transition={{ delay: index * 0.1, duration: 0.5 }}
+                              >
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '-25px',
+                                  fontSize: '12px',
+                                  color: '#cbd5e1',
+                                  fontWeight: '600'
+                                }}>
+                                  {day.count}
+                                </div>
+                                <div style={{
+                                  position: 'absolute',
+                                  bottom: '-20px',
+                                  fontSize: '10px',
+                                  color: '#94a3b8',
+                                  transform: 'rotate(-45deg)',
+                                  transformOrigin: 'left center'
+                                }}>
+                                  {new Date(day.date).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+                    <BarChart3 size={64} style={{ marginBottom: '20px', opacity: 0.5 }} />
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Analitikler Yüklenemedi</h3>
+                    <p>Sistem analitiklerini yüklerken bir hata oluştu.</p>
+                  </div>
+                )}
               </div>
             )}
           </>
