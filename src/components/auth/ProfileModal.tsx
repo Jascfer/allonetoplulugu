@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 
@@ -15,6 +15,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Profile form
   const [profileForm, setProfileForm] = useState({
@@ -78,6 +80,51 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // File validation
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setError('Dosya boyutu 5MB\'dan küçük olmalıdır!');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setError('Sadece resim dosyaları yüklenebilir!');
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to server
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const response = await apiService.uploadAvatar(formData);
+      updateUser({ ...user!, avatar: response.data.avatar });
+      setSuccess('Profil resmi başarıyla güncellendi!');
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const modalStyle = {
     position: 'fixed' as const,
     top: 0,
@@ -125,9 +172,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    '&:hover': {
-      backgroundColor: isActive ? '#16a34a' : 'rgba(255, 255, 255, 0.2)',
-    },
   });
 
   const inputStyle = {
@@ -140,9 +184,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     color: 'white',
     fontSize: '16px',
     backdropFilter: 'blur(10px)',
-    '&::placeholder': {
-      color: '#94a3b8',
-    },
   };
 
   const buttonStyle = {
@@ -162,10 +203,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     ...buttonStyle,
     backgroundColor: '#22c55e',
     color: 'white',
-    '&:hover': {
-      backgroundColor: '#16a34a',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const secondaryButtonStyle = {
@@ -173,20 +210,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     color: '#cbd5e1',
     border: '1px solid rgba(255, 255, 255, 0.2)',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-    },
   };
 
   const dangerButtonStyle = {
     ...buttonStyle,
     backgroundColor: '#ef4444',
     color: 'white',
-    '&:hover': {
-      backgroundColor: '#dc2626',
-      transform: 'translateY(-2px)',
-    },
   };
 
   if (!show) return null;
@@ -293,6 +322,66 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <form onSubmit={handleProfileUpdate}>
+              {/* Avatar Upload Section */}
+              <div style={{ marginBottom: '30px', textAlign: 'center' }}>
+                <div style={{ marginBottom: '15px' }}>
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    margin: '0 auto',
+                    backgroundImage: `url(${avatarPreview || user?.avatar || 'https://via.placeholder.com/120x120/1e293b/ffffff?text=' + (user?.name?.charAt(0) || 'U')})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: '3px solid rgba(255, 255, 255, 0.2)',
+                    position: 'relative',
+                    cursor: 'pointer',
+                  }} onClick={triggerFileInput}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      right: '0',
+                      width: '36px',
+                      height: '36px',
+                      backgroundColor: '#22c55e',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '3px solid #1e293b',
+                    }}>
+                      <Camera size={18} color="white" />
+                    </div>
+                  </div>
+                </div>
+                <motion.button
+                  type="button"
+                  style={{
+                    ...secondaryButtonStyle,
+                    margin: '0 auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                  onClick={triggerFileInput}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Upload size={16} />
+                  Profil Resmi Değiştir
+                </motion.button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  style={{ display: 'none' }}
+                />
+                <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '8px' }}>
+                  Maksimum 5MB, JPG/PNG/GIF formatları desteklenir
+                </p>
+              </div>
+
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
                   Ad Soyad

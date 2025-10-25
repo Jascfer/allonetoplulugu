@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth');
 const notesRoutes = require('./routes/notes');
 const categoriesRoutes = require('./routes/categories');
 const uploadRoutes = require('./routes/upload');
+const communityRoutes = require('./routes/community');
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/community', communityRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

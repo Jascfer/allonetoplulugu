@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -11,6 +11,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import apiService from '../services/api';
 
 interface CommunityPost {
   _id: string;
@@ -60,107 +61,47 @@ const Community: React.FC = () => {
   const [showNewPost, setShowNewPost] = useState(false);
   const [submittingPost, setSubmittingPost] = useState(false);
 
-  // Mock data
+  // Load posts from API
   useEffect(() => {
-    const mockPosts: CommunityPost[] = [
-      {
-        _id: '1',
-        title: 'Matematik çalışma teknikleri',
-        content: 'Merhaba arkadaşlar! Matematik dersinde başarılı olmak için hangi teknikleri kullanıyorsunuz? Benim için en etkili yöntem günlük pratik yapmak oldu.',
-        type: 'discussion',
-        category: 'Matematik',
-        author: {
-          _id: '1',
-          name: 'Ahmet Yılmaz',
-          avatar: 'https://via.placeholder.com/40/22c55e/ffffff?text=AY',
-          role: 'user',
-          points: 1250
-        },
-        createdAt: new Date().toISOString(),
-        likes: ['1', '2', '3'],
-        comments: [
-          {
-            _id: '1',
-            content: 'Ben de aynı şekilde düşünüyorum. Günlük 30 dakika çalışmak çok etkili.',
-            author: {
-              _id: '2',
-              name: 'Fatma Demir',
-              avatar: 'https://via.placeholder.com/40/3b82f6/ffffff?text=FD'
-            },
-            createdAt: new Date(Date.now() - 3600000).toISOString(),
-            likes: ['1', '2']
-          }
-        ],
-        tags: ['matematik', 'çalışma', 'teknik'],
-        isPinned: true
-      },
-      {
-        _id: '2',
-        title: 'Fizik sorusu - Momentum',
-        content: 'Bu momentum sorusunu çözemiyorum. Yardım edebilir misiniz?\n\nBir 2 kg kütleli cisim 10 m/s hızla hareket ediyor. Bu cismin momentumu nedir?',
-        type: 'question',
-        category: 'Fizik',
-        author: {
-          _id: '3',
-          name: 'Mehmet Kaya',
-          avatar: 'https://via.placeholder.com/40/ef4444/ffffff?text=MK',
-          role: 'user',
-          points: 890
-        },
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-        likes: ['1', '2'],
-        comments: [],
-        tags: ['fizik', 'momentum', 'soru'],
-        isPinned: false
-      },
-      {
-        _id: '3',
-        title: 'İlk 1000 puanımı aldım! 🎉',
-        content: 'Bugün ilk 1000 puanımı aldım! Bu kadar çalışmanın karşılığını görmek harika bir duygu. Herkese teşekkürler!',
-        type: 'achievement',
-        category: 'Genel',
-        author: {
-          _id: '4',
-          name: 'Ayşe Özkan',
-          avatar: 'https://via.placeholder.com/40/f59e0b/ffffff?text=AÖ',
-          role: 'user',
-          points: 1000
-        },
-        createdAt: new Date(Date.now() - 10800000).toISOString(),
-        likes: ['1', '2', '3', '4', '5'],
-        comments: [
-          {
-            _id: '2',
-            content: 'Tebrikler! 🎉 Seni takip ediyorum, gerçekten çok çalışıyorsun.',
-            author: {
-              _id: '1',
-              name: 'Ahmet Yılmaz',
-              avatar: 'https://via.placeholder.com/40/22c55e/ffffff?text=AY'
-            },
-            createdAt: new Date(Date.now() - 9000000).toISOString(),
-            likes: ['4']
-          }
-        ],
-        tags: ['başarı', 'puan', 'tebrik'],
-        isPinned: false
-      }
-    ];
-    
-    setPosts(mockPosts);
-    setLoading(false);
-  }, []);
+    loadPosts();
+  }, [activeTab, loadPosts]);
 
-  const handleLikePost = (postId: string) => {
+  const loadPosts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params: any = { limit: '20' };
+      if (activeTab !== 'all') {
+        params.type = activeTab;
+      }
+      
+      const response = await apiService.getCommunityPosts(params);
+      setPosts(response.data.posts || []);
+    } catch (error) {
+      console.error('Failed to load posts:', error);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab]);
+
+  const handleLikePost = async (postId: string) => {
     if (!isAuthenticated) return;
     
-    setPosts(prev => prev.map(post => 
-      post._id === postId 
-        ? { ...post, likes: post.likes.includes(user!.id) 
-            ? post.likes.filter(id => id !== user!.id)
-            : [...post.likes, user!.id]
-          }
-        : post
-    ));
+    try {
+      const response = await apiService.likeCommunityPost(postId);
+      setPosts(prev => prev.map(post => 
+        post._id === postId 
+          ? { 
+              ...post, 
+              likes: response.data.isLiked 
+                ? [...post.likes, user!.id]
+                : post.likes.filter(id => id !== user!.id)
+            }
+          : post
+      ));
+    } catch (error) {
+      console.error('Like post error:', error);
+    }
   };
 
   const handleSubmitPost = async () => {
@@ -168,28 +109,16 @@ const Community: React.FC = () => {
     
     setSubmittingPost(true);
     try {
-      // Mock post submission
-      const post: CommunityPost = {
-        _id: Date.now().toString(),
+      const postData = {
         title: newPost.title,
         content: newPost.content,
         type: newPost.type,
-        category: newPost.category,
-        author: {
-          _id: user!.id,
-          name: user!.name,
-          avatar: user!.avatar,
-          role: user!.role,
-          points: 0 // Will be calculated
-        },
-        createdAt: new Date().toISOString(),
-        likes: [],
-        comments: [],
-        tags: newPost.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        isPinned: false
+        category: newPost.category || 'Genel',
+        tags: newPost.tags
       };
-
-      setPosts(prev => [post, ...prev]);
+      
+      const response = await apiService.createCommunityPost(postData);
+      setPosts(prev => [response.data.post, ...prev]);
       setNewPost({
         title: '',
         content: '',

@@ -198,6 +198,61 @@ class ApiService {
   async getUserFavorites() {
     return this.request('/api/users/favorites');
   }
+
+  // Avatar Upload API
+  async uploadAvatar(formData) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${this.baseURL}/api/auth/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Avatar upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Community API
+  async getCommunityPosts(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/api/community/posts${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async createCommunityPost(postData) {
+    return this.request('/api/community/posts', {
+      method: 'POST',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  async likeCommunityPost(postId) {
+    return this.request(`/api/community/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async addCommentToPost(postId, content) {
+    return this.request(`/api/community/posts/${postId}/comment`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async likeComment(postId, commentId) {
+    return this.request(`/api/community/posts/${postId}/comments/${commentId}/like`, {
+      method: 'POST',
+    });
+  }
 }
 
 const apiService = new ApiService();
