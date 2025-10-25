@@ -1133,16 +1133,22 @@ const AdminPanel: React.FC = () => {
                           }}
                           style={{ width: '18px', height: '18px' }}
                         />
-                        <img
-                          src={user.avatar || `https://via.placeholder.com/40/22c55e/ffffff?text=${user.name.charAt(0)}`}
-                          alt={user.name}
+                        <div
                           style={{
                             width: '40px',
                             height: '40px',
                             borderRadius: '50%',
-                            objectFit: 'cover'
+                            backgroundColor: '#22c55e',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px',
+                            fontWeight: '600'
                           }}
-                        />
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
                         <div style={{ flex: 1 }}>
                           <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 5px 0', color: 'white' }}>
                             {user.name}
@@ -1524,9 +1530,9 @@ const AdminPanel: React.FC = () => {
                   style={inputStyle}
                   required
                 >
-                  <option value="">Kategori Seçin</option>
+                  <option value="" style={optionStyle}>Kategori Seçin</option>
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id} style={optionStyle}>{cat.name}</option>
                   ))}
                 </select>
 

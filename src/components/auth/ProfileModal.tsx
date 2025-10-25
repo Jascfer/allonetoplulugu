@@ -354,18 +354,28 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
               {/* Avatar Upload Section */}
               <div style={{ marginBottom: '30px', textAlign: 'center' }}>
                 <div style={{ marginBottom: '15px' }}>
-                  <div style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    margin: '0 auto',
-                    backgroundImage: `url(${avatarPreview || user?.avatar || 'https://via.placeholder.com/120x120/1e293b/ffffff?text=' + (user?.name?.charAt(0) || 'U')})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    border: '3px solid rgba(255, 255, 255, 0.2)',
-                    position: 'relative',
-                    cursor: 'pointer',
-                  }} onClick={triggerFileInput}>
+            <div style={{
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              margin: '0 auto',
+              backgroundColor: avatarPreview || user?.avatar ? 'transparent' : '#1e293b',
+              backgroundImage: avatarPreview || user?.avatar ? `url(${avatarPreview || user?.avatar})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '3px solid rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '48px',
+              fontWeight: '600',
+              color: 'white'
+            }} onClick={triggerFileInput}>
+              {!avatarPreview && !user?.avatar && (
+                <span>{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+              )}
                     <div style={{
                       position: 'absolute',
                       bottom: '0',
@@ -829,16 +839,25 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
         {/* Footer */}
         <div style={{ padding: '15px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img
-              src={user?.avatar}
-              alt={user?.name}
+            <div
               style={{
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                objectFit: 'cover'
+                backgroundColor: user?.avatar ? 'transparent' : '#22c55e',
+                backgroundImage: user?.avatar ? `url(${user?.avatar})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'white'
               }}
-            />
+            >
+              {!user?.avatar && (user?.name?.charAt(0)?.toUpperCase() || 'U')}
+            </div>
             <div>
               <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
                 {user?.name}
