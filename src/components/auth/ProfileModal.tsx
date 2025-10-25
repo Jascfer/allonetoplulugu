@@ -149,49 +149,58 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     position: 'fixed' as const,
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
+    width: '100vw',
+    height: '100vh',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     display: show ? 'flex' : 'none',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
     backdropFilter: 'blur(10px)',
+    padding: '20px',
+    boxSizing: 'border-box' as const,
   };
 
   const modalContentStyle = {
     backgroundColor: '#1e293b',
     borderRadius: '20px',
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-    width: '90%',
+    width: '100%',
     maxWidth: '600px',
-    maxHeight: '90vh',
+    maxHeight: 'calc(100vh - 40px)',
     overflowY: 'auto' as const,
     position: 'relative' as const,
     border: '1px solid rgba(255, 255, 255, 0.1)',
+    margin: '0 auto',
   };
 
   const headerStyle = {
-    padding: '25px 30px 20px',
+    padding: '20px 25px 15px',
     borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    position: 'sticky' as const,
+    top: 0,
+    backgroundColor: '#1e293b',
+    zIndex: 10,
+    borderRadius: '20px 20px 0 0',
   };
 
   const tabStyle = (isActive: boolean) => ({
-    padding: '10px 20px',
+    padding: '8px 16px',
     borderRadius: '8px',
     border: 'none',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
     transition: 'all 0.3s ease',
     backgroundColor: isActive ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
     color: isActive ? 'white' : '#cbd5e1',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
+    minWidth: 'fit-content',
   });
 
   const inputStyle = {
@@ -270,7 +279,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div style={{ padding: '20px 30px 0', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ padding: '15px 20px 0', display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <motion.button
             style={tabStyle(activeTab === 'profile')}
             onClick={() => setActiveTab('profile')}
@@ -301,7 +310,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
         </div>
 
         {/* Content */}
-        <div style={{ padding: '30px' }}>
+        <div style={{ padding: '20px' }}>
           {/* Success/Error Messages */}
           {success && (
             <motion.div
@@ -818,7 +827,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '20px 30px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '15px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
               src={user?.avatar}
