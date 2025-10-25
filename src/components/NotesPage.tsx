@@ -278,6 +278,11 @@ const NotesPage: React.FC = () => {
     backgroundSize: '18px',
   };
 
+  const optionStyle = {
+    backgroundColor: '#1e293b',
+    color: 'white',
+  };
+
   const filterButtonStyle = {
     padding: '14px 28px',
     backgroundColor: '#3b82f6',
@@ -509,9 +514,9 @@ const NotesPage: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value)}
             style={selectStyle}
           >
-            <option value="newest">En Yeni</option>
-            <option value="popular">Popüler</option>
-            <option value="top">En İyi</option>
+            <option value="newest" style={optionStyle}>En Yeni</option>
+            <option value="popular" style={optionStyle}>Popüler</option>
+            <option value="top" style={optionStyle}>En İyi</option>
           </select>
         </div>
 
@@ -531,9 +536,9 @@ const NotesPage: React.FC = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   style={selectStyle}
                 >
-                  <option value="">Tüm Kategoriler</option>
+                  <option value="" style={optionStyle}>Tüm Kategoriler</option>
                   {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id} style={optionStyle}>{cat.name}</option>
                   ))}
                 </select>
               </div>

@@ -175,6 +175,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     backgroundSize: '16px 12px',
   };
 
+  const optionStyle = {
+    backgroundColor: '#1e293b',
+    color: 'white',
+  };
+
   const buttonStyle = {
     padding: '10px 20px',
     borderRadius: '10px',
@@ -264,9 +269,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
             onChange={(e) => handleFilterChange('category', e.target.value)}
             style={selectStyle}
           >
-            <option value="">Tüm Kategoriler</option>
+            <option value="" style={optionStyle}>Tüm Kategoriler</option>
             {categories.map(category => (
-              <option key={category._id} value={category._id}>
+              <option key={category._id} value={category._id} style={optionStyle}>
                 {category.name}
               </option>
             ))}

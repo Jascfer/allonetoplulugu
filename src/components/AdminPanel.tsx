@@ -461,6 +461,11 @@ const AdminPanel: React.FC = () => {
     backdropFilter: 'blur(10px)',
   };
 
+  const optionStyle = {
+    backgroundColor: '#1e293b',
+    color: 'white',
+  };
+
   const cardStyle = {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     backdropFilter: 'blur(10px)',
@@ -702,9 +707,9 @@ const AdminPanel: React.FC = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             style={selectStyle}
           >
-            <option value="">Tüm Kategoriler</option>
+            <option value="" style={optionStyle}>Tüm Kategoriler</option>
             {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>{cat.name}</option>
+              <option key={cat._id} value={cat._id} style={optionStyle}>{cat.name}</option>
             ))}
           </select>
           <select
@@ -712,9 +717,9 @@ const AdminPanel: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value)}
             style={selectStyle}
           >
-            <option value="newest">En Yeni</option>
-            <option value="popular">En Popüler</option>
-            <option value="top">En Yüksek Puan</option>
+            <option value="newest" style={optionStyle}>En Yeni</option>
+            <option value="popular" style={optionStyle}>En Popüler</option>
+            <option value="top" style={optionStyle}>En Yüksek Puan</option>
           </select>
         </div>
       )}
@@ -737,10 +742,10 @@ const AdminPanel: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value)}
             style={selectStyle}
           >
-            <option value="newest">En Yeni</option>
-            <option value="oldest">En Eski</option>
-            <option value="name">İsim A-Z</option>
-            <option value="email">E-posta A-Z</option>
+            <option value="newest" style={optionStyle}>En Yeni</option>
+            <option value="oldest" style={optionStyle}>En Eski</option>
+            <option value="name" style={optionStyle}>İsim A-Z</option>
+            <option value="email" style={optionStyle}>E-posta A-Z</option>
           </select>
         </div>
       )}
@@ -768,8 +773,8 @@ const AdminPanel: React.FC = () => {
                           onChange={(e) => setBulkAction(e.target.value as any)}
                           style={{ ...selectStyle, minWidth: '120px' }}
                         >
-                          <option value="none">İşlem Seç</option>
-                          <option value="delete">Sil</option>
+                          <option value="none" style={optionStyle}>İşlem Seç</option>
+                          <option value="delete" style={optionStyle}>Sil</option>
                         </select>
                         <motion.button
                           style={bulkAction !== 'none' ? primaryButtonStyle : secondaryButtonStyle}
@@ -1085,10 +1090,10 @@ const AdminPanel: React.FC = () => {
                           onChange={(e) => setBulkAction(e.target.value as any)}
                           style={selectStyle}
                         >
-                          <option value="none">Toplu İşlem</option>
-                          <option value="activate">Aktifleştir</option>
-                          <option value="deactivate">Pasifleştir</option>
-                          <option value="delete">Sil</option>
+                          <option value="none" style={optionStyle}>Toplu İşlem</option>
+                          <option value="activate" style={optionStyle}>Aktifleştir</option>
+                          <option value="deactivate" style={optionStyle}>Pasifleştir</option>
+                          <option value="delete" style={optionStyle}>Sil</option>
                         </select>
                         <motion.button
                           style={secondaryButtonStyle}

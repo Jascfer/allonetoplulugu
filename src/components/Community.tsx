@@ -263,6 +263,11 @@ const Community: React.FC = () => {
     backgroundSize: '16px 12px',
   };
 
+  const optionStyle = {
+    backgroundColor: '#1e293b',
+    color: 'white',
+  };
+
   const tabStyle = (isActive: boolean) => ({
     padding: '10px 20px',
     borderRadius: '8px',
@@ -456,10 +461,10 @@ const Community: React.FC = () => {
               onChange={(e) => setNewPost({ ...newPost, type: e.target.value as any })}
               style={selectStyle}
             >
-              <option value="discussion">Tartışma</option>
-              <option value="question">Soru</option>
-              <option value="achievement">Başarı</option>
-              <option value="resource">Kaynak</option>
+              <option value="discussion" style={optionStyle}>Tartışma</option>
+              <option value="question" style={optionStyle}>Soru</option>
+              <option value="achievement" style={optionStyle}>Başarı</option>
+              <option value="resource" style={optionStyle}>Kaynak</option>
             </select>
             
             <input
