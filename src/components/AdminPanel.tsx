@@ -196,8 +196,11 @@ const AdminPanel: React.FC = () => {
       const noteData = {
         ...noteForm,
         tags: noteForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        googleDriveLink: noteForm.downloadUrl // Backend'de googleDriveLink olarak bekleniyor
+        downloadUrl: noteForm.downloadUrl,
+        googleDriveLink: noteForm.downloadUrl
       };
+
+      console.log('Sending note data:', noteData);
 
       if (editingNote) {
         await apiService.updateNote(editingNote._id, noteData);
@@ -211,6 +214,7 @@ const AdminPanel: React.FC = () => {
       resetNoteForm();
       loadData();
     } catch (error: any) {
+      console.error('Note creation error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
