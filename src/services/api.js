@@ -300,6 +300,39 @@ class ApiService {
   async getUserStats() {
     return this.request('/api/auth/stats');
   }
+
+  // Admin API
+  async getUsers(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/api/admin/users${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getUser(userId) {
+    return this.request(`/api/admin/users/${userId}`);
+  }
+
+  async updateUser(userId, userData) {
+    return this.request(`/api/admin/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async deleteUser(userId) {
+    return this.request(`/api/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleUserStatus(userId) {
+    return this.request(`/api/admin/users/${userId}/toggle-status`, {
+      method: 'POST',
+    });
+  }
+
+  async getAnalytics() {
+    return this.request('/api/admin/analytics');
+  }
 }
 
 const apiService = new ApiService();

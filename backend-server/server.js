@@ -17,6 +17,7 @@ const categoriesRoutes = require('./routes/categories');
 const uploadRoutes = require('./routes/upload');
 const communityRoutes = require('./routes/community');
 const dailyQuestionsRoutes = require('./routes/dailyQuestions');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -88,6 +89,7 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/daily-questions', dailyQuestionsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -16,7 +16,11 @@ import {
   Save,
   X,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Users,
+  Shield,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import apiService from '../services/api';
 
@@ -51,16 +55,32 @@ interface Note {
   isApproved: boolean;
 }
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: 'user' | 'admin';
+  createdAt: string;
+  lastLogin: string;
+  isActive: boolean;
+  notesCount: number;
+  postsCount: number;
+  answersCount: number;
+}
+
 const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'notes' | 'categories' | 'analytics'>('notes');
+  const [activeTab, setActiveTab] = useState<'notes' | 'categories' | 'users' | 'analytics'>('notes');
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{type: 'note' | 'category', id: string, name: string} | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{type: 'note' | 'category' | 'user', id: string, name: string} | null>(null);
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
-  const [bulkAction, setBulkAction] = useState<'none' | 'delete' | 'approve'>('none');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<'none' | 'delete' | 'approve' | 'activate' | 'deactivate'>('none');
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -139,6 +159,13 @@ const AdminPanel: React.FC = () => {
       } else if (activeTab === 'categories') {
         const response = await apiService.getCategories();
         setCategories(response.data || []);
+      } else if (activeTab === 'users') {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (sortBy) params.append('sortBy', sortBy);
+
+        const response = await apiService.getUsers(Object.fromEntries(params));
+        setUsers(response.data.users || []);
       }
     } catch (error: any) {
       setError(error.message);
@@ -215,6 +242,19 @@ const AdminPanel: React.FC = () => {
     setShowDeleteConfirm({ type: 'category', id, name });
   };
 
+  const handleToggleUserStatus = async (userId: string) => {
+    try {
+      setLoading(true);
+      await apiService.toggleUserStatus(userId);
+      setSuccess('Kullanıcı durumu başarıyla güncellendi!');
+      loadData();
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const confirmDelete = async () => {
     if (!showDeleteConfirm) return;
 
@@ -222,9 +262,12 @@ const AdminPanel: React.FC = () => {
       if (showDeleteConfirm.type === 'note') {
         await apiService.deleteNote(showDeleteConfirm.id);
         setSuccess('Not başarıyla silindi!');
-      } else {
+      } else if (showDeleteConfirm.type === 'category') {
         await apiService.deleteCategory(showDeleteConfirm.id);
         setSuccess('Kategori başarıyla silindi!');
+      } else if (showDeleteConfirm.type === 'user') {
+        await apiService.deleteUser(showDeleteConfirm.id);
+        setSuccess('Kullanıcı başarıyla silindi!');
       }
       setShowDeleteConfirm(null);
       loadData();
@@ -423,6 +466,13 @@ const AdminPanel: React.FC = () => {
     },
   };
 
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+    gap: '20px',
+    marginTop: '20px',
+  };
+
   const buttonStyle = {
     padding: '10px 20px',
     borderRadius: '10px',
@@ -607,6 +657,15 @@ const AdminPanel: React.FC = () => {
           Kategoriler ({categories.length})
         </motion.button>
         <motion.button
+          style={tabButtonStyle(activeTab === 'users')}
+          onClick={() => setActiveTab('users')}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Users size={20} />
+          Kullanıcılar ({users.length})
+        </motion.button>
+        <motion.button
           style={tabButtonStyle(activeTab === 'analytics')}
           onClick={() => setActiveTab('analytics')}
           whileHover={{ scale: 1.05 }}
@@ -648,6 +707,32 @@ const AdminPanel: React.FC = () => {
             <option value="newest">En Yeni</option>
             <option value="popular">En Popüler</option>
             <option value="top">En Yüksek Puan</option>
+          </select>
+        </div>
+      )}
+
+      {/* Users Search */}
+      {activeTab === 'users' && (
+        <div style={searchContainerStyle}>
+          <div style={{ position: 'relative' }}>
+            <Search size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <input
+              type="text"
+              placeholder="Kullanıcılarda ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ ...searchInputStyle, paddingLeft: '45px' }}
+            />
+          </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={selectStyle}
+          >
+            <option value="newest">En Yeni</option>
+            <option value="oldest">En Eski</option>
+            <option value="name">İsim A-Z</option>
+            <option value="email">E-posta A-Z</option>
           </select>
         </div>
       )}
@@ -972,6 +1057,162 @@ const AdminPanel: React.FC = () => {
                         </div>
                       </motion.div>
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'users' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: '600', margin: 0 }}>Kullanıcılar</h2>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {selectedUsers.length > 0 && (
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginRight: '15px' }}>
+                        <span style={{ color: '#cbd5e1', fontSize: '14px' }}>
+                          {selectedUsers.length} seçili
+                        </span>
+                        <select
+                          value={bulkAction}
+                          onChange={(e) => setBulkAction(e.target.value as any)}
+                          style={selectStyle}
+                        >
+                          <option value="none">Toplu İşlem</option>
+                          <option value="activate">Aktifleştir</option>
+                          <option value="deactivate">Pasifleştir</option>
+                          <option value="delete">Sil</option>
+                        </select>
+                        <motion.button
+                          style={secondaryButtonStyle}
+                          onClick={() => setSelectedUsers([])}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Temizle
+                        </motion.button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={gridStyle}>
+                  {users.map((user) => (
+                    <motion.div
+                      key={user._id}
+                      style={{
+                        ...cardStyle,
+                        border: selectedUsers.includes(user._id) ? '2px solid #22c55e' : '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ y: -5 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(user._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedUsers([...selectedUsers, user._id]);
+                            } else {
+                              setSelectedUsers(selectedUsers.filter(id => id !== user._id));
+                            }
+                          }}
+                          style={{ width: '18px', height: '18px' }}
+                        />
+                        <img
+                          src={user.avatar || `https://via.placeholder.com/40/22c55e/ffffff?text=${user.name.charAt(0)}`}
+                          alt={user.name}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 5px 0', color: 'white' }}>
+                            {user.name}
+                          </h3>
+                          <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: 0 }}>
+                            {user.email}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {user.role === 'admin' && (
+                            <Shield size={16} style={{ color: '#f59e0b' }} />
+                          )}
+                          <span style={{
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            backgroundColor: user.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                            color: user.isActive ? '#22c55e' : '#ef4444',
+                            fontWeight: '600'
+                          }}>
+                            {user.isActive ? 'Aktif' : 'Pasif'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '15px' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>{user.notesCount}</div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>Notlar</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>{user.postsCount}</div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>Postlar</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>{user.answersCount}</div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>Cevaplar</div>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '15px' }}>
+                        Kayıt: {new Date(user.createdAt).toLocaleDateString('tr-TR')}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <motion.button
+                          style={{
+                            ...secondaryButtonStyle,
+                            padding: '8px 12px',
+                            fontSize: '12px',
+                            flex: 1
+                          }}
+                          onClick={() => handleToggleUserStatus(user._id)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
+                          {user.isActive ? 'Pasifleştir' : 'Aktifleştir'}
+                        </motion.button>
+                        <motion.button
+                          style={{
+                            ...secondaryButtonStyle,
+                            padding: '8px 12px',
+                            fontSize: '12px',
+                            flex: 1
+                          }}
+                          onClick={() => setShowDeleteConfirm({ type: 'user', id: user._id, name: user.name })}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Trash2 size={14} />
+                          Sil
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {users.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+                    <Users size={64} style={{ marginBottom: '20px', opacity: 0.5 }} />
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Kullanıcı Bulunamadı</h3>
+                    <p>Arama kriterlerinize uygun kullanıcı bulunamadı.</p>
                   </div>
                 )}
               </div>
