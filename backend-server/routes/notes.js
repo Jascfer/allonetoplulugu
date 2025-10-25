@@ -103,12 +103,23 @@ router.post('/', auth, adminAuth, async (req, res) => {
   try {
     const { title, description, category, googleDriveLink, downloadUrl, tags, subject, semester, year } = req.body;
     
+    console.log('Creating note with data:', { title, description, category, subject, semester, year });
+    
+    // Validate required fields
+    if (!title || !description || !category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Başlık, açıklama ve kategori gereklidir'
+      });
+    }
+    
     // Validate category exists
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
+      console.error('Category not found:', category);
       return res.status(400).json({
         success: false,
-        error: 'Geçersiz kategori'
+        error: 'Geçersiz kategori ID'
       });
     }
     
@@ -138,7 +149,11 @@ router.post('/', auth, adminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Create note error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 });
 
