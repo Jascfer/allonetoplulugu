@@ -225,7 +225,9 @@ const AdminPanel: React.FC = () => {
     try {
       const noteData = {
         ...noteForm,
-        tags: noteForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        tags: noteForm.tags && noteForm.tags.trim() 
+          ? noteForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+          : [],
         downloadUrl: noteForm.downloadUrl,
         googleDriveLink: noteForm.downloadUrl
       };
