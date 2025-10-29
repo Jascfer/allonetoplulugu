@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut, GraduationCap, BookOpen, Building2, Palette } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
+import AvatarSelectionModal from '../avatars/AvatarSelectionModal';
 
 interface ProfileModalProps {
   show: boolean;
@@ -17,6 +18,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const [success, setSuccess] = useState('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false);
   const [userStats, setUserStats] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -127,6 +129,41 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleAvatarSelect = async (avatarUrl: string) => {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Avatar URL'ini backend'e kaydet
+      const response = await apiService.updateProfile({ avatar: avatarUrl });
+      
+      if (response.success && response.data?.user) {
+        updateUser({
+          id: response.data.user.id,
+          name: response.data.user.name,
+          email: response.data.user.email,
+          avatar: response.data.user.avatar,
+          role: response.data.user.role
+        });
+        setAvatarPreview(avatarUrl);
+        setSuccess('Profil resmi başarıyla güncellendi!');
+        
+        // Success mesajını 3 saniye sonra temizle
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error: any) {
+      setError(error.message || 'Profil resmi güncellenirken bir hata oluştu');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAvatarUploadClick = () => {
+    setShowAvatarSelection(false);
+    triggerFileInput();
   };
 
   const loadUserStats = async () => {
@@ -423,7 +460,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
               fontSize: '48px',
               fontWeight: '600',
               color: 'white'
-            }} onClick={triggerFileInput}>
+            }} onClick={() => setShowAvatarSelection(true)}>
               {!avatarPreview && !user?.avatar && (
                 <span>{user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
               )}
@@ -444,22 +481,41 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
                     </div>
                   </div>
                 </div>
-                <motion.button
-                  type="button"
-                  style={{
-                    ...secondaryButtonStyle,
-                    margin: '0 auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                  onClick={triggerFileInput}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Upload size={16} />
-                  Profil Resmi Değiştir
-                </motion.button>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <motion.button
+                    type="button"
+                    style={{
+                      ...secondaryButtonStyle,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                      borderColor: '#8b5cf6',
+                      color: '#a78bfa',
+                    }}
+                    onClick={() => setShowAvatarSelection(true)}
+                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(139, 92, 246, 0.3)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Palette size={16} />
+                    Hazır Avatar Seç
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    style={{
+                      ...secondaryButtonStyle,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                    onClick={triggerFileInput}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Upload size={16} />
+                    Resim Yükle
+                  </motion.button>
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -1060,6 +1116,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Avatar Selection Modal */}
+      <AvatarSelectionModal
+        show={showAvatarSelection}
+        onClose={() => setShowAvatarSelection(false)}
+        currentAvatar={avatarPreview || user?.avatar}
+        onSelect={handleAvatarSelect}
+        onUpload={handleAvatarUploadClick}
+      />
     </div>
   );
 };

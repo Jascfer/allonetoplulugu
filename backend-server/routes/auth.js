@@ -173,7 +173,7 @@ router.put('/profile', auth, [
       });
     }
 
-    const { name, email } = req.body;
+    const { name, email, avatar } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -191,6 +191,7 @@ router.put('/profile', auth, [
     // Update user fields
     if (name) user.name = name;
     if (email) user.email = email;
+    if (avatar) user.avatar = avatar;
 
     await user.save();
 
