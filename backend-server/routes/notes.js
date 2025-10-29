@@ -131,16 +131,26 @@ router.post('/', auth, adminAuth, async (req, res) => {
       });
     }
     
+    // Handle tags - could be string or array
+    let tagsArray = [];
+    if (tags) {
+      if (Array.isArray(tags)) {
+        tagsArray = tags.map(tag => typeof tag === 'string' ? tag.trim() : String(tag).trim()).filter(tag => tag);
+      } else if (typeof tags === 'string') {
+        tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
+    }
+
     const note = new Note({
       title,
       description,
       category,
       googleDriveLink: downloadUrl || googleDriveLink,
       downloadUrl: downloadUrl || googleDriveLink,
-      subject,
-      semester,
-      year,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      subject: subject || '',
+      semester: semester || '',
+      year: year || '',
+      tags: tagsArray,
       author: req.userId,
       isApproved: true // Admin notes are auto-approved
     });
@@ -157,10 +167,13 @@ router.post('/', auth, adminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Create note error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Request body:', req.body);
     res.status(500).json({ 
       success: false,
       error: 'Internal server error',
-      details: error.message 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });

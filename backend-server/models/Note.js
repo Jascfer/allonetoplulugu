@@ -27,7 +27,7 @@ const noteSchema = new mongoose.Schema({
   },
   subject: {
     type: String,
-    required: [true, 'Subject is required'],
+    required: false,
     trim: true
   },
   semester: {
