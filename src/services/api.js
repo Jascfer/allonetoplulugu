@@ -254,6 +254,32 @@ class ApiService {
     });
   }
 
+  async updateCommunityPost(postId, postData) {
+    return this.request(`/api/community/posts/${postId}`, {
+      method: 'PUT',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  async deleteCommunityPost(postId) {
+    return this.request(`/api/community/posts/${postId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async pinCommunityPost(postId) {
+    return this.request(`/api/community/posts/${postId}/pin`, {
+      method: 'POST',
+    });
+  }
+
+  async reportCommunityPost(postId, reason) {
+    return this.request(`/api/community/posts/${postId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
   // Daily Questions API
   async getDailyQuestions(params = {}) {
     const queryString = new URLSearchParams(params).toString();

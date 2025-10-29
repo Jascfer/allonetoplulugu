@@ -147,7 +147,17 @@ router.get('/me', auth, async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-          role: user.role
+          role: user.role,
+          department: user.department,
+          year: user.year,
+          studentNumber: user.studentNumber,
+          graduationYear: user.graduationYear,
+          biography: user.biography,
+          interests: user.interests,
+          privacy: user.privacy,
+          badges: user.badges,
+          level: user.level,
+          points: user.points
         }
       }
     });
@@ -162,7 +172,16 @@ router.get('/me', auth, async (req, res) => {
 // @access  Private
 router.put('/profile', auth, [
   body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-  body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email')
+  body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
+  body('biography').optional().isLength({ max: 500 }).withMessage('Biography cannot be more than 500 characters'),
+  body('department').optional().isLength({ max: 100 }).withMessage('Department cannot be more than 100 characters'),
+  body('year').optional().isIn(['1', '2', '3', '4', '5', '6', 'Yüksek Lisans', 'Doktora', 'Mezun']).withMessage('Invalid year'),
+  body('studentNumber').optional().isLength({ max: 50 }).withMessage('Student number cannot be more than 50 characters'),
+  body('graduationYear').optional().trim(),
+  body('interests').optional().isArray().withMessage('Interests must be an array'),
+  body('privacy.profileVisibility').optional().isIn(['public', 'friends', 'private']).withMessage('Invalid profile visibility'),
+  body('privacy.emailVisibility').optional().isBoolean().withMessage('Email visibility must be a boolean'),
+  body('privacy.showActivity').optional().isBoolean().withMessage('Show activity must be a boolean')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -173,7 +192,19 @@ router.put('/profile', auth, [
       });
     }
 
-    const { name, email, avatar } = req.body;
+    const { 
+      name, 
+      email, 
+      avatar, 
+      department, 
+      year, 
+      studentNumber, 
+      graduationYear, 
+      biography, 
+      interests,
+      privacy 
+    } = req.body;
+    
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -192,6 +223,19 @@ router.put('/profile', auth, [
     if (name) user.name = name;
     if (email) user.email = email;
     if (avatar) user.avatar = avatar;
+    if (department !== undefined) user.department = department;
+    if (year !== undefined) user.year = year;
+    if (studentNumber !== undefined) user.studentNumber = studentNumber;
+    if (graduationYear !== undefined) user.graduationYear = graduationYear;
+    if (biography !== undefined) user.biography = biography;
+    if (interests !== undefined) user.interests = Array.isArray(interests) ? interests : [];
+    
+    // Update privacy settings
+    if (privacy) {
+      if (privacy.profileVisibility) user.privacy.profileVisibility = privacy.profileVisibility;
+      if (privacy.emailVisibility !== undefined) user.privacy.emailVisibility = privacy.emailVisibility;
+      if (privacy.showActivity !== undefined) user.privacy.showActivity = privacy.showActivity;
+    }
 
     await user.save();
 
@@ -203,7 +247,17 @@ router.put('/profile', auth, [
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-          role: user.role
+          role: user.role,
+          department: user.department,
+          year: user.year,
+          studentNumber: user.studentNumber,
+          graduationYear: user.graduationYear,
+          biography: user.biography,
+          interests: user.interests,
+          privacy: user.privacy,
+          badges: user.badges,
+          level: user.level,
+          points: user.points
         }
       }
     });

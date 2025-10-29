@@ -1,7 +1,9 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const CommunityPost = require('../models/CommunityPost');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 
 const router = express.Router();
 
@@ -204,6 +206,145 @@ router.post('/posts/:id/comments/:commentId/like', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Like comment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   PUT /api/community/posts/:id
+// @desc    Update a post (Author only)
+// @access  Private
+router.put('/posts/:id', auth, [
+  body('title').optional().isLength({ max: 200 }).withMessage('Title cannot be more than 200 characters'),
+  body('content').optional().isLength({ max: 2000 }).withMessage('Content cannot be more than 2000 characters'),
+  body('type').optional().isIn(['discussion', 'question', 'achievement', 'resource']).withMessage('Invalid post type'),
+  body('tags').optional()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check if user is author or admin
+    const user = await User.findById(req.userId);
+    if (post.author.toString() !== req.userId && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to update this post' });
+    }
+
+    const { title, content, type, category, tags } = req.body;
+    
+    if (title) post.title = title;
+    if (content) post.content = content;
+    if (type) post.type = type;
+    if (category) post.category = category;
+    if (tags !== undefined) {
+      post.tags = tags ? (Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim()).filter(tag => tag)) : [];
+    }
+
+    await post.save();
+    await post.populate('author', 'name avatar role');
+
+    res.json({
+      success: true,
+      data: { post }
+    });
+  } catch (error) {
+    console.error('Update post error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   DELETE /api/community/posts/:id
+// @desc    Delete a post (Author or Admin only)
+// @access  Private
+router.delete('/posts/:id', auth, async (req, res) => {
+  try {
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check if user is author or admin
+    const user = await User.findById(req.userId);
+    if (post.author.toString() !== req.userId && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to delete this post' });
+    }
+
+    await CommunityPost.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Post deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete post error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/community/posts/:id/pin
+// @desc    Pin/unpin a post (Admin only)
+// @access  Private (Admin)
+router.post('/posts/:id/pin', auth, adminAuth, async (req, res) => {
+  try {
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    post.isPinned = !post.isPinned;
+    await post.save();
+
+    res.json({
+      success: true,
+      data: { 
+        isPinned: post.isPinned
+      }
+    });
+  } catch (error) {
+    console.error('Pin post error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/community/posts/:id/report
+// @desc    Report a post
+// @access  Private
+router.post('/posts/:id/report', auth, [
+  body('reason').notEmpty().withMessage('Report reason is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // In a real app, you'd save this to a reports collection
+    // For now, we'll just log it
+    console.log(`Post ${req.params.id} reported by user ${req.userId}. Reason: ${req.body.reason}`);
+
+    res.json({
+      success: true,
+      message: 'Post reported successfully. Our team will review it.'
+    });
+  } catch (error) {
+    console.error('Report post error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

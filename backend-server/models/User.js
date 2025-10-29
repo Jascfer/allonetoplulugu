@@ -63,7 +63,67 @@ const userSchema = new mongoose.Schema({
     ip: String,
     lastActivity: Date,
     createdAt: Date
-  }]
+  }],
+  // Akademik Profil Bilgileri
+  department: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Department cannot be more than 100 characters']
+  },
+  year: {
+    type: String,
+    enum: ['1', '2', '3', '4', '5', '6', 'Yüksek Lisans', 'Doktora', 'Mezun']
+  },
+  studentNumber: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Student number cannot be more than 50 characters']
+  },
+  graduationYear: {
+    type: String,
+    trim: true
+  },
+  biography: {
+    type: String,
+    maxlength: [500, 'Biography cannot be more than 500 characters']
+  },
+  interests: [{
+    type: String,
+    trim: true
+  }],
+  // Gizlilik Ayarları
+  privacy: {
+    profileVisibility: {
+      type: String,
+      enum: ['public', 'friends', 'private'],
+      default: 'public'
+    },
+    emailVisibility: {
+      type: Boolean,
+      default: false
+    },
+    showActivity: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // Rozetler ve Başarılar
+  badges: [{
+    badgeId: String,
+    badgeName: String,
+    earnedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  level: {
+    type: Number,
+    default: 1
+  },
+  points: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true
 });

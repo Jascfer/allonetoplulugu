@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut, GraduationCap, BookOpen, Building2, Palette } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart2, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut, GraduationCap, BookOpen, Building2, Palette, Edit, Users, Eye } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import AvatarSelectionModal from '../avatars/AvatarSelectionModal';
@@ -27,7 +27,18 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   // Profile form
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
-    email: user?.email || ''
+    email: user?.email || '',
+    department: (user as any)?.department || '',
+    year: (user as any)?.year || '',
+    studentNumber: (user as any)?.studentNumber || '',
+    graduationYear: (user as any)?.graduationYear || '',
+    biography: (user as any)?.biography || '',
+    interests: (user as any)?.interests || [],
+    privacy: {
+      profileVisibility: (user as any)?.privacy?.profileVisibility || 'public',
+      emailVisibility: (user as any)?.privacy?.emailVisibility || false,
+      showActivity: (user as any)?.privacy?.showActivity !== undefined ? (user as any)?.privacy?.showActivity : true
+    }
   });
   
   // Password form
@@ -222,7 +233,25 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     if (show && activeTab === 'security') {
       loadSessions();
     }
-  }, [show, activeTab]);
+    // Update form when user data changes
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+        department: (user as any)?.department || '',
+        year: (user as any)?.year || '',
+        studentNumber: (user as any)?.studentNumber || '',
+        graduationYear: (user as any)?.graduationYear || '',
+        biography: (user as any)?.biography || '',
+        interests: (user as any)?.interests || [],
+        privacy: {
+          profileVisibility: (user as any)?.privacy?.profileVisibility || 'public',
+          emailVisibility: (user as any)?.privacy?.emailVisibility || false,
+          showActivity: (user as any)?.privacy?.showActivity !== undefined ? (user as any)?.privacy?.showActivity : true
+        }
+      });
+    }
+  }, [show, activeTab, user]);
 
   const modalStyle = {
     position: 'fixed' as const,
@@ -559,6 +588,210 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
                     style={{ ...inputStyle, paddingLeft: '45px' }}
                     required
                   />
+                </div>
+              </div>
+
+              {/* Akademik Bilgiler */}
+              <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#3b82f6', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <GraduationCap size={20} />
+                  Akademik Bilgiler
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                      <Building2 size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                      Bölüm/Fakülte
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.department}
+                      onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
+                      placeholder="Örn: Bilgisayar Mühendisliği"
+                      style={{ ...inputStyle }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                      <BookOpen size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                      Sınıf/Yıl
+                    </label>
+                    <select
+                      value={profileForm.year}
+                      onChange={(e) => setProfileForm({ ...profileForm, year: e.target.value })}
+                      style={{ ...inputStyle, backgroundColor: '#1e293b' }}
+                    >
+                      <option value="" style={{ backgroundColor: '#1e293b', color: 'white' }}>Seçiniz</option>
+                      <option value="1" style={{ backgroundColor: '#1e293b', color: 'white' }}>1. Sınıf</option>
+                      <option value="2" style={{ backgroundColor: '#1e293b', color: 'white' }}>2. Sınıf</option>
+                      <option value="3" style={{ backgroundColor: '#1e293b', color: 'white' }}>3. Sınıf</option>
+                      <option value="4" style={{ backgroundColor: '#1e293b', color: 'white' }}>4. Sınıf</option>
+                      <option value="5" style={{ backgroundColor: '#1e293b', color: 'white' }}>5. Sınıf</option>
+                      <option value="6" style={{ backgroundColor: '#1e293b', color: 'white' }}>6. Sınıf</option>
+                      <option value="Yüksek Lisans" style={{ backgroundColor: '#1e293b', color: 'white' }}>Yüksek Lisans</option>
+                      <option value="Doktora" style={{ backgroundColor: '#1e293b', color: 'white' }}>Doktora</option>
+                      <option value="Mezun" style={{ backgroundColor: '#1e293b', color: 'white' }}>Mezun</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                      Öğrenci Numarası
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.studentNumber}
+                      onChange={(e) => setProfileForm({ ...profileForm, studentNumber: e.target.value })}
+                      placeholder="Opsiyonel"
+                      style={{ ...inputStyle }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                      Mezuniyet Yılı
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.graduationYear}
+                      onChange={(e) => setProfileForm({ ...profileForm, graduationYear: e.target.value })}
+                      placeholder="Örn: 2025"
+                      style={{ ...inputStyle }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Biyografi */}
+              <div style={{ marginBottom: '30px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  <Edit size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                  Hakkımda / Biyografi
+                </label>
+                <textarea
+                  value={profileForm.biography}
+                  onChange={(e) => setProfileForm({ ...profileForm, biography: e.target.value })}
+                  placeholder="Kendinizden kısaca bahsedin..."
+                  maxLength={500}
+                  rows={4}
+                  style={{
+                    ...inputStyle,
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                  }}
+                />
+                <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '8px', textAlign: 'right' }}>
+                  {profileForm.biography.length}/500
+                </p>
+              </div>
+
+              {/* Gizlilik Ayarları */}
+              <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#a78bfa', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Shield size={20} />
+                  Gizlilik Ayarları
+                </h3>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                    Profil Görünürlüğü
+                  </label>
+                  <select
+                    value={profileForm.privacy.profileVisibility}
+                    onChange={(e) => setProfileForm({
+                      ...profileForm,
+                      privacy: { ...profileForm.privacy, profileVisibility: e.target.value as 'public' | 'friends' | 'private' }
+                    })}
+                    style={{ ...inputStyle, backgroundColor: '#1e293b' }}
+                  >
+                    <option value="public" style={{ backgroundColor: '#1e293b', color: 'white' }}>Herkese Açık</option>
+                    <option value="friends" style={{ backgroundColor: '#1e293b', color: 'white' }}>Sadece Arkadaşlar</option>
+                    <option value="private" style={{ backgroundColor: '#1e293b', color: 'white' }}>Özel</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <div>
+                    <label style={{ display: 'block', color: '#cbd5e1', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+                      E-posta Adresini Göster
+                    </label>
+                    <p style={{ color: '#94a3b8', fontSize: '12px' }}>Profilinizde e-posta adresiniz görünsün mü?</p>
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => setProfileForm({
+                      ...profileForm,
+                      privacy: { ...profileForm.privacy, emailVisibility: !profileForm.privacy.emailVisibility }
+                    })}
+                    style={{
+                      width: '50px',
+                      height: '28px',
+                      borderRadius: '14px',
+                      border: 'none',
+                      backgroundColor: profileForm.privacy.emailVisibility ? '#22c55e' : 'rgba(71, 85, 105, 0.5)',
+                      cursor: 'pointer',
+                      position: 'relative',
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      style={{
+                        position: 'absolute',
+                        top: '3px',
+                        left: profileForm.privacy.emailVisibility ? '25px' : '3px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                      }}
+                      animate={{ left: profileForm.privacy.emailVisibility ? '25px' : '3px' }}
+                      transition={{ type: 'spring', stiffness: 300 }}
+                    />
+                  </motion.button>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <label style={{ display: 'block', color: '#cbd5e1', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+                      Aktivite Göster
+                    </label>
+                    <p style={{ color: '#94a3b8', fontSize: '12px' }}>Aktivite durumunuz görünsün mü?</p>
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => setProfileForm({
+                      ...profileForm,
+                      privacy: { ...profileForm.privacy, showActivity: !profileForm.privacy.showActivity }
+                    })}
+                    style={{
+                      width: '50px',
+                      height: '28px',
+                      borderRadius: '14px',
+                      border: 'none',
+                      backgroundColor: profileForm.privacy.showActivity ? '#22c55e' : 'rgba(71, 85, 105, 0.5)',
+                      cursor: 'pointer',
+                      position: 'relative',
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      style={{
+                        position: 'absolute',
+                        top: '3px',
+                        left: profileForm.privacy.showActivity ? '25px' : '3px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                      }}
+                      animate={{ left: profileForm.privacy.showActivity ? '25px' : '3px' }}
+                      transition={{ type: 'spring', stiffness: 300 }}
+                    />
+                  </motion.button>
                 </div>
               </div>
 
