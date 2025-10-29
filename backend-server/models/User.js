@@ -40,7 +40,30 @@ const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
-  }
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: {
+    type: String
+  },
+  emailVerificationExpires: {
+    type: Date
+  },
+  passwordResetToken: {
+    type: String
+  },
+  passwordResetExpires: {
+    type: Date
+  },
+  activeSessions: [{
+    token: String,
+    device: String,
+    ip: String,
+    lastActivity: Date,
+    createdAt: Date
+  }]
 }, {
   timestamps: true
 });
