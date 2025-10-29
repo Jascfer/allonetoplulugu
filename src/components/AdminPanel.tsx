@@ -80,6 +80,7 @@ const AdminPanel: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState({ notes: 0, categories: 0, users: 0 });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{type: 'note' | 'category' | 'user', id: string, name: string} | null>(null);
@@ -150,6 +151,28 @@ const AdminPanel: React.FC = () => {
     book: '📚'
   };
 
+  // Pre-load all counts on initial mount
+  const preloadCounts = useCallback(async () => {
+    try {
+      const [notesRes, categoriesRes, usersRes] = await Promise.all([
+        apiService.getNotes({ limit: 1 }),
+        apiService.getCategories(),
+        apiService.getUsers({ limit: 1 })
+      ]);
+      
+      setCounts({
+        notes: notesRes.data?.total || notesRes.data?.notes?.length || 0,
+        categories: categoriesRes.data?.length || 0,
+        users: usersRes.data?.totalUsers || usersRes.data?.users?.length || 0
+      });
+      
+      // Also set the categories for immediate use
+      setCategories(categoriesRes.data || []);
+    } catch (error) {
+      console.error('Preload error:', error);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -161,9 +184,11 @@ const AdminPanel: React.FC = () => {
 
         const response = await apiService.getNotes(Object.fromEntries(params));
         setNotes(response.data.notes || []);
+        setCounts(prev => ({ ...prev, notes: response.data?.total || response.data?.notes?.length || 0 }));
       } else if (activeTab === 'categories') {
         const response = await apiService.getCategories();
         setCategories(response.data || []);
+        setCounts(prev => ({ ...prev, categories: response.data?.length || 0 }));
       } else if (activeTab === 'users') {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
@@ -171,6 +196,7 @@ const AdminPanel: React.FC = () => {
 
         const response = await apiService.getUsers(Object.fromEntries(params));
         setUsers(response.data.users || []);
+        setCounts(prev => ({ ...prev, users: response.data?.totalUsers || response.data?.users?.length || 0 }));
       } else if (activeTab === 'analytics') {
         const response = await apiService.getAnalytics();
         setAnalytics(response.data);
@@ -181,6 +207,10 @@ const AdminPanel: React.FC = () => {
       setLoading(false);
     }
   }, [activeTab, selectedCategory, searchTerm, sortBy]);
+
+  useEffect(() => {
+    preloadCounts();
+  }, [preloadCounts]);
 
   useEffect(() => {
     loadData();
@@ -662,7 +692,7 @@ const AdminPanel: React.FC = () => {
           whileTap={{ scale: 0.95 }}
         >
           <FileText size={20} />
-          Notlar ({notes.length})
+          Notlar ({activeTab === 'notes' ? notes.length : counts.notes})
         </motion.button>
         <motion.button
           style={tabButtonStyle(activeTab === 'categories')}
@@ -671,7 +701,7 @@ const AdminPanel: React.FC = () => {
           whileTap={{ scale: 0.95 }}
         >
           <BookOpen size={20} />
-          Kategoriler ({categories.length})
+          Kategoriler ({activeTab === 'categories' ? categories.length : counts.categories})
         </motion.button>
         <motion.button
           style={tabButtonStyle(activeTab === 'users')}
@@ -680,7 +710,7 @@ const AdminPanel: React.FC = () => {
           whileTap={{ scale: 0.95 }}
         >
           <Users size={20} />
-          Kullanıcılar ({users.length})
+          Kullanıcılar ({activeTab === 'users' ? users.length : counts.users})
         </motion.button>
         <motion.button
           style={tabButtonStyle(activeTab === 'analytics')}

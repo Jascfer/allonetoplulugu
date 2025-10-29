@@ -4,13 +4,14 @@ import { Download, Eye, Star, Clock, User, Search, Filter, BookOpen, ArrowLeft, 
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
+import ShareButton from './ShareButton';
 
 interface Category {
   _id: string;
   name: string;
   description: string;
-  subject: string;
-  grade: string;
+  color: string;
+  icon: string;
 }
 
 interface Note {
@@ -19,12 +20,17 @@ interface Note {
   description: string;
   category: Category;
   googleDriveUrl: string;
+  downloadUrl: string;
   downloadCount: number;
   viewCount: number;
   rating: number;
   tags: string[];
+  subject?: string;
+  semester?: string;
+  year?: string;
   author: {
     name: string;
+    avatar?: string;
   };
   createdAt: string;
 }
@@ -38,7 +44,6 @@ const NotesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedGrade, setSelectedGrade] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
@@ -48,7 +53,6 @@ const NotesPage: React.FC = () => {
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       if (selectedSubject) params.append('subject', selectedSubject);
-      if (selectedGrade) params.append('grade', selectedGrade);
       if (searchTerm) params.append('search', searchTerm);
       if (sortBy) params.append('sortBy', sortBy);
 
@@ -59,7 +63,7 @@ const NotesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedSubject, selectedGrade, searchTerm, sortBy]);
+  }, [selectedCategory, selectedSubject, searchTerm, sortBy]);
 
   const loadCategories = useCallback(async () => {
     try {
@@ -446,7 +450,7 @@ const NotesPage: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.5 }}
           >
-            Öğrenciler için hazırlanmış kaliteli notları keşfedin. Aradığınız ders, konu veya sınıf notlarını kolayca bulun.
+            Üniversite öğrencileri için hazırlanmış kaliteli notları keşfedin. Aradığınız ders, konu veya dönem notlarını kolayca bulun.
           </motion.p>
 
           <motion.div
@@ -561,20 +565,6 @@ const NotesPage: React.FC = () => {
                   <option value="edebiyat">Edebiyat</option>
                 </select>
               </div>
-              <div style={filterOptionGroupStyle}>
-                <label style={filterLabelStyle}>Sınıf</label>
-                <select
-                  value={selectedGrade}
-                  onChange={(e) => setSelectedGrade(e.target.value)}
-                  style={selectStyle}
-                >
-                  <option value="">Tüm Sınıflar</option>
-                  <option value="9">9. Sınıf</option>
-                  <option value="10">10. Sınıf</option>
-                  <option value="11">11. Sınıf</option>
-                  <option value="12">12. Sınıf</option>
-                </select>
-              </div>
             </div>
           </motion.div>
         )}
@@ -627,7 +617,7 @@ const NotesPage: React.FC = () => {
         >
           <BookOpen size={48} style={{ color: '#64748b', marginBottom: '20px' }} />
           <h3 style={{ fontSize: '1.8rem', color: '#cbd5e1', marginBottom: '15px' }}>
-            {searchTerm || selectedCategory || selectedSubject || selectedGrade 
+            {searchTerm || selectedCategory || selectedSubject 
               ? 'Arama kriterlerinize uygun not bulunamadı' 
               : 'Henüz not eklenmemiş'
             }
@@ -692,16 +682,18 @@ const NotesPage: React.FC = () => {
                   }}>
                     📁 {note.category.name}
                   </span>
-                  <span style={{
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    color: '#4ade80',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    fontWeight: '600'
-                  }}>
-                    🎓 {note.category.grade}. Sınıf
-                  </span>
+                  {(note.semester || note.year) && (
+                    <span style={{
+                      backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                      color: '#4ade80',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      🎓 {note.semester && note.year ? `${note.semester} - ${note.year}` : note.semester || note.year}
+                    </span>
+                  )}
                 </div>
 
                 {note.tags.length > 0 && (
@@ -745,15 +737,22 @@ const NotesPage: React.FC = () => {
                 </div>
               </div>
 
-              <motion.button
-                style={downloadButtonStyle}
-                onClick={() => handleDownload(note._id, note.googleDriveUrl)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Download size={16} />
-                İndir
-              </motion.button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <ShareButton
+                  noteId={note._id}
+                  noteTitle={note.title}
+                  noteUrl={`${window.location.origin}/notes/${note._id}`}
+                />
+                <motion.button
+                  style={downloadButtonStyle}
+                  onClick={() => handleDownload(note._id, note.googleDriveUrl || note.downloadUrl)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Download size={16} />
+                  İndir
+                </motion.button>
+              </div>
             </motion.div>
           ))}
         </motion.div>
