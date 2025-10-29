@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart3, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 
@@ -11,7 +11,7 @@ interface ProfileModalProps {
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const { user, logout, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'activity'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'activity' | 'security'>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,6 +19,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
   
   // Profile form
   const [profileForm, setProfileForm] = useState({
@@ -139,9 +141,49 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
     }
   };
 
+  const loadSessions = async () => {
+    try {
+      setLoadingSessions(true);
+      const response = await apiService.getSessions();
+      setSessions(response.data || []);
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await apiService.deleteSession(sessionId);
+      setSessions(sessions.filter(s => s._id !== sessionId));
+      setSuccess('Oturum başarıyla silindi!');
+    } catch (error: any) {
+      setError(error.message || 'Oturum silinirken bir hata oluştu');
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    if (!window.confirm('Tüm cihazlardan çıkış yapmak istediğinizden emin misiniz?')) {
+      return;
+    }
+    try {
+      await apiService.logoutAll();
+      setSuccess('Tüm cihazlardan başarıyla çıkış yapıldı!');
+      setTimeout(() => {
+        logout();
+      }, 1500);
+    } catch (error: any) {
+      setError(error.message || 'Çıkış yapılırken bir hata oluştu');
+    }
+  };
+
   useEffect(() => {
     if (show && activeTab === 'activity') {
       loadUserStats();
+    }
+    if (show && activeTab === 'security') {
+      loadSessions();
     }
   }, [show, activeTab]);
 
@@ -306,6 +348,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
           >
             <FileText size={18} />
             Aktivite
+          </motion.button>
+          <motion.button
+            style={tabStyle(activeTab === 'security')}
+            onClick={() => setActiveTab('security')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Shield size={18} />
+            Güvenlik
           </motion.button>
         </div>
 
@@ -832,6 +883,138 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ show, onClose }) => {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Security Tab */}
+          {activeTab === 'security' && (
+            <div>
+              <div style={{ marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: '600', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Shield size={24} />
+                  Oturum Yönetimi
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>
+                  Aktif oturumlarınızı görüntüleyin ve yönetin
+                </p>
+              </div>
+
+              {loadingSessions ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid rgba(34, 197, 94, 0.3)',
+                    borderTop: '3px solid #22c55e',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 20px'
+                  }} />
+                  <p style={{ color: '#94a3b8' }}>Oturumlar yükleniyor...</p>
+                </div>
+              ) : sessions.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {sessions.map((session: any) => (
+                    <motion.div
+                      key={session._id}
+                      style={{
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                        border: '1px solid rgba(51, 65, 85, 0.3)',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '15px',
+                      }}
+                      whileHover={{ backgroundColor: 'rgba(30, 41, 59, 0.7)' }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          {session.device?.toLowerCase().includes('mobile') ? (
+                            <Smartphone size={24} style={{ color: '#3b82f6' }} />
+                          ) : (
+                            <Monitor size={24} style={{ color: '#3b82f6' }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+                            {session.device || 'Bilinmeyen Cihaz'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+                            IP: {session.ip || 'Bilinmiyor'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            Son aktivite: {session.lastActivity ? new Date(session.lastActivity).toLocaleString('tr-TR') : 'Bilinmiyor'}
+                          </div>
+                        </div>
+                      </div>
+                      <motion.button
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                        onClick={() => handleDeleteSession(session._id)}
+                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(239, 68, 68, 0.3)' }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Trash2 size={16} />
+                        Kaldır
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px' }}>
+                  <Shield size={48} style={{ color: '#94a3b8', marginBottom: '20px' }} />
+                  <h3 style={{ fontSize: '1.1rem', color: '#cbd5e1', marginBottom: '10px' }}>
+                    Aktif Oturum Bulunamadı
+                  </h3>
+                  <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                    Şu anda aktif oturumunuz bulunmuyor.
+                  </p>
+                </div>
+              )}
+
+              <div style={{ marginTop: '30px', padding: '20px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <LogOut size={20} />
+                  Tüm Cihazlardan Çıkış
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '15px' }}>
+                  Tüm cihazlardan oturumunuzu sonlandırmak istediğinizde bu butona tıklayın. Bu işlem geri alınamaz.
+                </p>
+                <motion.button
+                  style={{
+                    ...dangerButtonStyle,
+                    width: '100%',
+                  }}
+                  onClick={handleLogoutAll}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <LogOut size={18} />
+                  Tüm Cihazlardan Çıkış Yap
+                </motion.button>
+              </div>
             </div>
           )}
         </div>

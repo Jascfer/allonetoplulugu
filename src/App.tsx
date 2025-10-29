@@ -8,6 +8,7 @@ import NotesPage from './components/NotesPage';
 import DailyQuestions from './components/DailyQuestions';
 import Community from './components/Community';
 import AdminPanel from './components/AdminPanel';
+import ResetPasswordModal from './components/auth/ResetPasswordModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppContent() {
@@ -112,6 +113,7 @@ function AppContent() {
           {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
           <Route path="/daily-questions" element={<DailyQuestions />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/reset-password" element={<ResetPasswordModal />} />
         </Routes>
       </main>
       

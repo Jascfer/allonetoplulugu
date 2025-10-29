@@ -333,6 +333,37 @@ class ApiService {
   async getAnalytics() {
     return this.request('/api/admin/analytics');
   }
+
+  // Security & Password Reset API
+  async forgotPassword(email) {
+    return this.request('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token, email, password) {
+    return this.request('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, email, password }),
+    });
+  }
+
+  async getSessions() {
+    return this.request('/api/auth/sessions');
+  }
+
+  async deleteSession(sessionId) {
+    return this.request(`/api/auth/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async logoutAll() {
+    return this.request('/api/auth/logout-all', {
+      method: 'POST',
+    });
+  }
 }
 
 const apiService = new ApiService();

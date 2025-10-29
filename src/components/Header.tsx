@@ -5,12 +5,14 @@ import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';
+import ForgotPasswordModal from './auth/ForgotPasswordModal';
 import ProfileModal from './auth/ProfileModal';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
 
@@ -31,15 +33,24 @@ const Header: React.FC = () => {
     const handleCloseAuthModal = () => setShowAuthModal(false);
     const handleCloseProfileModal = () => setShowProfileModal(false);
     const handleOpenAuthModal = () => setShowAuthModal(true);
+    const handleOpenForgotPassword = () => {
+      setShowAuthModal(false);
+      setShowForgotPasswordModal(true);
+    };
+    const handleCloseForgotPassword = () => setShowForgotPasswordModal(false);
     
     window.addEventListener('closeAuthModal', handleCloseAuthModal);
     window.addEventListener('closeProfileModal', handleCloseProfileModal);
     window.addEventListener('openAuthModal', handleOpenAuthModal);
+    window.addEventListener('openForgotPassword', handleOpenForgotPassword);
+    window.addEventListener('closeForgotPassword', handleCloseForgotPassword);
     
     return () => {
       window.removeEventListener('closeAuthModal', handleCloseAuthModal);
       window.removeEventListener('closeProfileModal', handleCloseProfileModal);
       window.removeEventListener('openAuthModal', handleOpenAuthModal);
+      window.removeEventListener('openForgotPassword', handleOpenForgotPassword);
+      window.removeEventListener('closeForgotPassword', handleCloseForgotPassword);
     };
   }, []);
 
@@ -286,6 +297,7 @@ const Header: React.FC = () => {
       {/* Modals */}
       {showAuthModal && <AuthModal />}
       {showProfileModal && <ProfileModal show={showProfileModal} onClose={() => setShowProfileModal(false)} />}
+      {showForgotPasswordModal && <ForgotPasswordModal show={showForgotPasswordModal} onClose={() => setShowForgotPasswordModal(false)} />}
     </motion.header>
   );
 };

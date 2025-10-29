@@ -391,7 +391,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             {rememberMe && <CheckCircle size={14} color="white" />}
           </div>
           <span style={{ color: '#cbd5e1', fontSize: '14px' }}>Beni hatırla</span>
-          <span style={{ marginLeft: 'auto', color: '#3b82f6', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
+          <span 
+            style={{ marginLeft: 'auto', color: '#3b82f6', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(new CustomEvent('openForgotPassword'));
+            }}
+          >
             Şifremi unuttum
           </span>
         </div>
