@@ -36,7 +36,7 @@ interface Note {
 }
 
 const NotesPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,9 +75,44 @@ const NotesPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadNotes();
     loadCategories();
-  }, [loadNotes, loadCategories]);
+  }, [loadCategories]);
+
+  useEffect(() => {
+    // Authentication durumu değiştiğinde veya sayfa ilk yüklendiğinde notları yükle
+    // Auth loading tamamlandıktan sonra notları yükle
+    if (!authLoading) {
+      loadNotes();
+    }
+  }, [isAuthenticated, authLoading, loadNotes]);
+
+  // Auth loading durumunda bekleyelim
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid rgba(34, 197, 94, 0.3)',
+            borderTop: '4px solid #22c55e',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }} />
+          <p style={{ color: '#94a3b8' }}>Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Authentication kontrolü - giriş yapmamış kullanıcıları ana sayfaya yönlendir
   if (!isAuthenticated) {
