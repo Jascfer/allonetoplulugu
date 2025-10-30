@@ -826,7 +826,8 @@ const NotesPage: React.FC = () => {
                     fontWeight: '600',
                     marginRight: '8px'
                   }}>
-                    📁 {note.category?.name || note.category || 'Kategori Yok'}
+                    <span>📁 </span>
+                    <span>{typeof note.category === 'object' && note.category?.name ? note.category.name : (typeof note.category === 'string' ? note.category : 'Kategori Yok')}</span>
                   </span>
                   {(note.semester || note.year) && (
                     <span style={{
@@ -837,7 +838,8 @@ const NotesPage: React.FC = () => {
                       fontSize: '12px',
                       fontWeight: '600'
                     }}>
-                      🎓 {note.semester && note.year ? `${note.semester} - ${note.year}` : note.semester || note.year}
+                      <span>🎓 </span>
+                      <span>{note.semester && note.year ? `${note.semester} - ${note.year}` : note.semester || note.year}</span>
                     </span>
                   )}
                 </div>
