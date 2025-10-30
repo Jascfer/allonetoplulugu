@@ -8,7 +8,13 @@ import {
   BookOpen,
   Zap,
   Heart,
-  Share2
+  Share2,
+  Trash2,
+  Edit,
+  Pin,
+  Flag,
+  MoreVertical,
+  X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
@@ -60,6 +66,12 @@ const Community: React.FC = () => {
   });
   const [showNewPost, setShowNewPost] = useState(false);
   const [submittingPost, setSubmittingPost] = useState(false);
+  const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+  const [editPostForm, setEditPostForm] = useState({ title: '', content: '', category: '', tags: '' });
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingPostId, setReportingPostId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -101,6 +113,84 @@ const Community: React.FC = () => {
       ));
     } catch (error) {
       console.error('Like post error:', error);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm('Bu gönderiyi silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+    
+    try {
+      await apiService.deleteCommunityPost(postId);
+      setPosts(prev => prev.filter(post => post._id !== postId));
+    } catch (error: any) {
+      alert(error.message || 'Gönderi silinirken bir hata oluştu');
+    }
+  };
+
+  const handleEditPost = (post: CommunityPost) => {
+    setEditingPost(post);
+    setEditPostForm({
+      title: post.title,
+      content: post.content,
+      category: post.category,
+      tags: post.tags.join(', ')
+    });
+    setOpenMenuId(null);
+  };
+
+  const handleUpdatePost = async () => {
+    if (!editingPost) return;
+    
+    try {
+      const response = await apiService.updateCommunityPost(editingPost._id, editPostForm);
+      setPosts(prev => prev.map(post => 
+        post._id === editingPost._id 
+          ? { ...post, ...response.data.post }
+          : post
+      ));
+      setEditingPost(null);
+      setEditPostForm({ title: '', content: '', category: '', tags: '' });
+    } catch (error: any) {
+      alert(error.message || 'Gönderi güncellenirken bir hata oluştu');
+    }
+  };
+
+  const handlePinPost = async (postId: string) => {
+    try {
+      const response = await apiService.pinCommunityPost(postId);
+      setPosts(prev => prev.map(post => 
+        post._id === postId 
+          ? { ...post, isPinned: response.data.isPinned }
+          : post
+      ));
+      setOpenMenuId(null);
+    } catch (error: any) {
+      alert(error.message || 'Gönderi sabitlenirken bir hata oluştu');
+    }
+  };
+
+  const handleReportPost = (postId: string) => {
+    setReportingPostId(postId);
+    setShowReportModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportingPostId || !reportReason.trim()) {
+      alert('Lütfen rapor nedenini belirtin');
+      return;
+    }
+
+    try {
+      await apiService.reportCommunityPost(reportingPostId, reportReason);
+      alert('Gönderi başarıyla raporlandı. Ekibimiz inceleme yapacak.');
+      setShowReportModal(false);
+      setReportingPostId(null);
+      setReportReason('');
+    } catch (error: any) {
+      alert(error.message || 'Gönderi raporlanırken bir hata oluştu');
     }
   };
 
@@ -608,8 +698,16 @@ const Community: React.FC = () => {
                   }}
                 />
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {post.author.name}
+                    {post.author.role === 'admin' && (
+                      <span style={{ fontSize: '12px', color: '#22c55e' }}>
+                        👑 Admin
+                      </span>
+                    )}
+                    {post.isPinned && (
+                      <Pin size={16} style={{ color: '#f59e0b' }} />
+                    )}
                   </div>
                   <div style={{ fontSize: '12px', color: '#94a3b8' }}>
                     {post.author.points} puan • {new Date(post.createdAt).toLocaleDateString('tr-TR')}
@@ -618,6 +716,117 @@ const Community: React.FC = () => {
               </div>
               
               <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                {/* Action Menu for Post Author or Admin */}
+                {(user?.id === post.author._id || user?.role === 'admin') && (
+                  <div style={{ position: 'relative' }}>
+                    <motion.button
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        color: '#cbd5e1',
+                      }}
+                      onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
+                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <MoreVertical size={18} />
+                    </motion.button>
+                    
+                    {openMenuId === post._id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          right: 0,
+                          marginTop: '8px',
+                          backgroundColor: '#1e293b',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '12px',
+                          padding: '8px',
+                          minWidth: '180px',
+                          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                          zIndex: 100,
+                        }}
+                      >
+                        {user?.role === 'admin' && (
+                          <motion.button
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'none',
+                              border: 'none',
+                              color: '#cbd5e1',
+                              cursor: 'pointer',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              fontSize: '14px',
+                              textAlign: 'left',
+                            }}
+                            onClick={() => handlePinPost(post._id)}
+                            whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                          >
+                            <Pin size={16} />
+                            {post.isPinned ? 'Sabitlemeyi Kaldır' : 'Sabitle'}
+                          </motion.button>
+                        )}
+                        {user?.id === post.author._id && (
+                          <motion.button
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'none',
+                              border: 'none',
+                              color: '#cbd5e1',
+                              cursor: 'pointer',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              fontSize: '14px',
+                              textAlign: 'left',
+                            }}
+                            onClick={() => handleEditPost(post)}
+                            whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                          >
+                            <Edit size={16} />
+                            Düzenle
+                          </motion.button>
+                        )}
+                        {(user?.id === post.author._id || user?.role === 'admin') && (
+                          <motion.button
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'none',
+                              border: 'none',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              fontSize: '14px',
+                              textAlign: 'left',
+                            }}
+                            onClick={() => handleDeletePost(post._id)}
+                            whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                          >
+                            <Trash2 size={16} />
+                            Sil
+                          </motion.button>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+                
                 <motion.button
                   style={{
                     ...secondaryButtonStyle,
@@ -646,10 +855,12 @@ const Community: React.FC = () => {
                     padding: '8px',
                     fontSize: '14px',
                   }}
+                  onClick={() => handleReportPost(post._id)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  title="Gönderiyi raporla"
                 >
-                  <Share2 size={16} />
+                  <Flag size={16} />
                 </motion.button>
               </div>
             </div>
@@ -695,6 +906,211 @@ const Community: React.FC = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Edit Post Modal */}
+      {editingPost && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }} onClick={() => setEditingPost(null)}>
+          <motion.div
+            style={{
+              backgroundColor: '#1e293b',
+              borderRadius: '20px',
+              padding: '30px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'white' }}>Gönderiyi Düzenle</h3>
+              <motion.button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '8px',
+                }}
+                onClick={() => setEditingPost(null)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X size={24} />
+              </motion.button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Gönderi başlığı..."
+              value={editPostForm.title}
+              onChange={(e) => setEditPostForm({ ...editPostForm, title: e.target.value })}
+              style={inputStyle}
+            />
+
+            <textarea
+              placeholder="Gönderi içeriği..."
+              value={editPostForm.content}
+              onChange={(e) => setEditPostForm({ ...editPostForm, content: e.target.value })}
+              style={textareaStyle}
+              rows={8}
+            />
+
+            <input
+              type="text"
+              placeholder="Kategori..."
+              value={editPostForm.category}
+              onChange={(e) => setEditPostForm({ ...editPostForm, category: e.target.value })}
+              style={inputStyle}
+            />
+
+            <input
+              type="text"
+              placeholder="Etiketler (virgülle ayırın)..."
+              value={editPostForm.tags}
+              onChange={(e) => setEditPostForm({ ...editPostForm, tags: e.target.value })}
+              style={inputStyle}
+            />
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <motion.button
+                style={secondaryButtonStyle}
+                onClick={() => setEditingPost(null)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                İptal
+              </motion.button>
+              <motion.button
+                style={primaryButtonStyle}
+                onClick={handleUpdatePost}
+                disabled={!editPostForm.title.trim() || !editPostForm.content.trim()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Edit size={18} />
+                Güncelle
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }} onClick={() => {
+          setShowReportModal(false);
+          setReportingPostId(null);
+          setReportReason('');
+        }}>
+          <motion.div
+            style={{
+              backgroundColor: '#1e293b',
+              borderRadius: '20px',
+              padding: '30px',
+              maxWidth: '500px',
+              width: '100%',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Flag size={24} />
+                Gönderiyi Raporla
+              </h3>
+              <motion.button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '8px',
+                }}
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportingPostId(null);
+                  setReportReason('');
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X size={24} />
+              </motion.button>
+            </div>
+
+            <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '14px' }}>
+              Bu gönderiyi neden raporlamak istiyorsunuz? Raporunuz ekibimiz tarafından incelenecektir.
+            </p>
+
+            <textarea
+              placeholder="Rapor nedenini açıklayın..."
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              style={textareaStyle}
+              rows={6}
+            />
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <motion.button
+                style={secondaryButtonStyle}
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportingPostId(null);
+                  setReportReason('');
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                İptal
+              </motion.button>
+              <motion.button
+                style={{
+                  ...primaryButtonStyle,
+                  backgroundColor: '#f59e0b',
+                  borderColor: '#f59e0b',
+                }}
+                onClick={handleSubmitReport}
+                disabled={!reportReason.trim()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Flag size={18} />
+                Raporla
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
