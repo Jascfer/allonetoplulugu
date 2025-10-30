@@ -14,7 +14,7 @@ import {
   Flag,
   MoreVertical,
   X,
-  Reply,
+  Reply as ReplyIcon,
   BarChart3,
   Plus,
   Minus,
@@ -1251,7 +1251,7 @@ const Community: React.FC = () => {
                           )}
                           whileHover={{ color: '#3b82f6' }}
                         >
-                          <Reply size={14} />
+                          <ReplyIcon size={14} />
                           Cevap Ver
                           {comment.replies && comment.replies.length > 0 && (
                             <span style={{ marginLeft: '4px' }}>
