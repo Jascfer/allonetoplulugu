@@ -92,11 +92,19 @@ const NotesPage: React.FC = () => {
       }
       
       console.log('Parsed notes:', notesData, 'Count:', notesData.length); // Debug log
+      
+      // Notların yapısını kontrol et
+      if (notesData.length > 0) {
+        console.log('First note structure:', notesData[0]);
+      }
+      
       setNotes(notesData);
       
       // Eğer not yoksa bilgi ver
       if (notesData.length === 0) {
         console.warn('No notes found. Check if notes exist in database and are approved (isApproved: true).');
+      } else {
+        console.log('✅ Notes loaded successfully!', notesData.length, 'notes');
       }
     } catch (error: any) {
       console.error('Load notes error:', error);
@@ -747,7 +755,7 @@ const NotesPage: React.FC = () => {
             Filtreleri değiştirmeyi veya daha genel bir arama yapmayı deneyin.
           </p>
         </motion.div>
-      ) : (
+          ) : (
         <motion.div
           style={gridContainerStyle}
           initial="hidden"
@@ -801,7 +809,7 @@ const NotesPage: React.FC = () => {
                     fontWeight: '600',
                     marginRight: '8px'
                   }}>
-                    📁 {note.category.name}
+                    📁 {note.category?.name || note.category || 'Kategori Yok'}
                   </span>
                   {(note.semester || note.year) && (
                     <span style={{
@@ -845,11 +853,11 @@ const NotesPage: React.FC = () => {
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Star size={14} style={statIconStyle} />
-                    {note.rating.toFixed(1)}
+                    {(note.rating || 0).toFixed(1)}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <User size={14} style={statIconStyle} />
-                    {note.author.name}
+                    {note.author?.name || note.author || 'Bilinmeyen'}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Clock size={14} style={statIconStyle} />
