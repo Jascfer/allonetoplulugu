@@ -64,27 +64,31 @@ const NotesPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedSubject) params.append('subject', selectedSubject);
-      if (searchTerm) params.append('search', searchTerm);
-      if (sortBy) params.append('sortBy', sortBy);
+      const params: { [key: string]: string } = {};
+      if (selectedCategory) params.category = selectedCategory;
+      if (selectedSubject) params.subject = selectedSubject;
+      if (searchTerm) params.search = searchTerm;
+      if (sortBy) params.sortBy = sortBy;
+      // Limit'i artır ki tüm notlar görünsün
+      params.limit = '100';
+      params.page = '1';
 
-      const response = await apiService.getNotes(Object.fromEntries(params));
+      console.log('Loading notes with params:', params); // Debug log
+      const response = await apiService.getNotes(params);
       console.log('Notes API Response:', response); // Debug log
       
-      // Farklı response formatlarını destekle
+      // Backend response format: { success: true, data: { notes: [...], total: ... } }
       let notesData = [];
-      if (response && response.data) {
-        if (Array.isArray(response.data.notes)) {
+      if (response) {
+        if (response.success && response.data && Array.isArray(response.data.notes)) {
+          notesData = response.data.notes;
+        } else if (response.data && Array.isArray(response.data.notes)) {
           notesData = response.data.notes;
         } else if (Array.isArray(response.data)) {
           notesData = response.data;
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          notesData = response.data.data;
+        } else if (Array.isArray(response)) {
+          notesData = response;
         }
-      } else if (Array.isArray(response)) {
-        notesData = response;
       }
       
       console.log('Parsed notes:', notesData, 'Count:', notesData.length); // Debug log
@@ -92,7 +96,7 @@ const NotesPage: React.FC = () => {
       
       // Eğer not yoksa bilgi ver
       if (notesData.length === 0) {
-        console.log('No notes found. Check if notes exist in database and are approved.');
+        console.warn('No notes found. Check if notes exist in database and are approved (isApproved: true).');
       }
     } catch (error: any) {
       console.error('Load notes error:', error);
@@ -119,11 +123,10 @@ const NotesPage: React.FC = () => {
   useEffect(() => {
     // Authentication durumu değiştiğinde veya sayfa ilk yüklendiğinde notları yükle
     // Auth loading tamamlandıktan sonra notları yükle
-    if (!authLoading && isAuthenticated) {
+    // Notlar public endpoint olduğu için authentication gerekmiyor
+    if (!authLoading) {
       console.log('Loading notes - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
       loadNotes();
-    } else if (!authLoading) {
-      console.log('Not authenticated - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     }
   }, [isAuthenticated, authLoading, loadNotes]);
 
