@@ -254,6 +254,27 @@ class ApiService {
     });
   }
 
+  async addReplyToComment(postId, commentId, content) {
+    return this.request(`/api/community/posts/${postId}/comments/${commentId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async createPoll(postId, pollData) {
+    return this.request(`/api/community/posts/${postId}/poll`, {
+      method: 'POST',
+      body: JSON.stringify(pollData),
+    });
+  }
+
+  async votePoll(postId, optionIndex) {
+    return this.request(`/api/community/posts/${postId}/poll/vote`, {
+      method: 'POST',
+      body: JSON.stringify({ optionIndex }),
+    });
+  }
+
   async updateCommunityPost(postId, postData) {
     return this.request(`/api/community/posts/${postId}`, {
       method: 'PUT',

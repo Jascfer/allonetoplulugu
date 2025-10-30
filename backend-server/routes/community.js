@@ -210,6 +210,186 @@ router.post('/posts/:id/comments/:commentId/like', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/community/posts/:id/comments/:commentId/reply
+// @desc    Add reply to a comment
+// @access  Private
+router.post('/posts/:id/comments/:commentId/reply', auth, [
+  body('content').notEmpty().withMessage('Reply content is required').isLength({ max: 500 }).withMessage('Reply cannot be more than 500 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { content } = req.body;
+    
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    const reply = {
+      author: req.userId,
+      content: content.trim()
+    };
+    
+    comment.replies.push(reply);
+    await post.save();
+    await post.populate('comments.replies.author', 'name avatar');
+    
+    const newReply = comment.replies[comment.replies.length - 1];
+    
+    res.status(201).json({
+      success: true,
+      data: { reply: newReply }
+    });
+  } catch (error) {
+    console.error('Add reply error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/community/posts/:id/poll
+// @desc    Create or update poll on a post
+// @access  Private
+router.post('/posts/:id/poll', auth, [
+  body('question').notEmpty().withMessage('Poll question is required').isLength({ max: 200 }).withMessage('Poll question cannot be more than 200 characters'),
+  body('options').isArray({ min: 2, max: 10 }).withMessage('Poll must have between 2 and 10 options'),
+  body('options.*.text').notEmpty().withMessage('Poll option text is required').isLength({ max: 100 }).withMessage('Poll option cannot be more than 100 characters'),
+  body('expiresAt').optional().isISO8601().withMessage('Invalid expiration date'),
+  body('multipleChoice').optional().isBoolean().withMessage('Multiple choice must be a boolean')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { question, options, expiresAt, multipleChoice } = req.body;
+    
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check if user is post author
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Only post author can create polls' });
+    }
+
+    // Check if poll already exists
+    if (post.poll && post.poll.question) {
+      return res.status(400).json({ error: 'Poll already exists on this post' });
+    }
+
+    post.poll = {
+      question: question.trim(),
+      options: options.map((opt: any) => ({
+        text: opt.text.trim(),
+        votes: []
+      })),
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      multipleChoice: multipleChoice || false
+    };
+
+    await post.save();
+    
+    res.status(201).json({
+      success: true,
+      data: { poll: post.poll }
+    });
+  } catch (error) {
+    console.error('Create poll error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// @route   POST /api/community/posts/:id/poll/vote
+// @desc    Vote on a poll
+// @access  Private
+router.post('/posts/:id/poll/vote', auth, [
+  body('optionIndex').isInt({ min: 0 }).withMessage('Valid option index is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { optionIndex } = req.body;
+    
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (!post.poll || !post.poll.question) {
+      return res.status(404).json({ error: 'Poll not found' });
+    }
+
+    // Check if poll has expired
+    if (post.poll.expiresAt && new Date(post.poll.expiresAt) < new Date()) {
+      return res.status(400).json({ error: 'Poll has expired' });
+    }
+
+    if (optionIndex < 0 || optionIndex >= post.poll.options.length) {
+      return res.status(400).json({ error: 'Invalid option index' });
+    }
+
+    const option = post.poll.options[optionIndex];
+
+    // Check if user already voted (if not multiple choice)
+    if (!post.poll.multipleChoice) {
+      const hasVoted = post.poll.options.some((opt: any) => opt.votes.includes(req.userId));
+      if (hasVoted) {
+        // Remove vote from all options
+        post.poll.options.forEach((opt: any) => {
+          const voteIndex = opt.votes.indexOf(req.userId);
+          if (voteIndex > -1) {
+            opt.votes.splice(voteIndex, 1);
+          }
+        });
+      }
+    }
+
+    // Add vote to selected option (if not already voted)
+    if (!option.votes.includes(req.userId)) {
+      option.votes.push(req.userId);
+    } else if (post.poll.multipleChoice) {
+      // Remove vote if multiple choice and already voted
+      const voteIndex = option.votes.indexOf(req.userId);
+      if (voteIndex > -1) {
+        option.votes.splice(voteIndex, 1);
+      }
+    }
+
+    await post.save();
+    
+    res.json({
+      success: true,
+      data: { poll: post.poll }
+    });
+  } catch (error) {
+    console.error('Vote poll error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // @route   PUT /api/community/posts/:id
 // @desc    Update a post (Author only)
 // @access  Private

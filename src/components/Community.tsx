@@ -13,10 +13,50 @@ import {
   Pin,
   Flag,
   MoreVertical,
-  X
+  X,
+  Reply,
+  BarChart3,
+  Plus,
+  Minus,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
+
+interface Reply {
+  _id: string;
+  content: string;
+  author: {
+    _id: string;
+    name: string;
+    avatar: string;
+  };
+  createdAt: string;
+  likes: string[];
+}
+
+interface Comment {
+  _id: string;
+  content: string;
+  author: {
+    _id: string;
+    name: string;
+    avatar: string;
+  };
+  createdAt: string;
+  likes: string[];
+  replies?: Reply[];
+}
+
+interface Poll {
+  question: string;
+  options: {
+    text: string;
+    votes: string[];
+  }[];
+  expiresAt?: string;
+  multipleChoice: boolean;
+}
 
 interface CommunityPost {
   _id: string;
@@ -36,18 +76,7 @@ interface CommunityPost {
   comments: Comment[];
   tags: string[];
   isPinned: boolean;
-}
-
-interface Comment {
-  _id: string;
-  content: string;
-  author: {
-    _id: string;
-    name: string;
-    avatar: string;
-  };
-  createdAt: string;
-  likes: string[];
+  poll?: Poll;
 }
 
 
@@ -71,6 +100,17 @@ const Community: React.FC = () => {
   const [reportingPostId, setReportingPostId] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{ postId: string; commentId: string } | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [commentContents, setCommentContents] = useState<{ [postId: string]: string }>({});
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [showPollModal, setShowPollModal] = useState<string | null>(null);
+  const [pollForm, setPollForm] = useState({
+    question: '',
+    options: ['', ''],
+    expiresAt: '',
+    multipleChoice: false
+  });
 
   const loadPosts = useCallback(async () => {
     try {
@@ -190,6 +230,107 @@ const Community: React.FC = () => {
       setReportReason('');
     } catch (error: any) {
       alert(error.message || 'Gönderi raporlanırken bir hata oluştu');
+    }
+  };
+
+  const handleAddReply = async (postId: string, commentId: string) => {
+    if (!replyContent.trim()) {
+      alert('Cevap içeriği gereklidir');
+      return;
+    }
+    try {
+      const response = await apiService.addReplyToComment(postId, commentId, replyContent);
+      setPosts(prev => prev.map(post => {
+        if (post._id === postId) {
+          const updatedComments = post.comments.map(comment => {
+            if (comment._id === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), response.data.reply]
+              };
+            }
+            return comment;
+          });
+          return { ...post, comments: updatedComments };
+        }
+        return post;
+      }));
+      setReplyContent('');
+      setReplyingTo(null);
+    } catch (error: any) {
+      alert(error.message || 'Cevap eklenirken bir hata oluştu');
+    }
+  };
+
+  const toggleComments = (postId: string) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleCreatePoll = async (postId: string) => {
+    if (!pollForm.question.trim()) {
+      alert('Anket sorusu gereklidir');
+      return;
+    }
+    const validOptions = pollForm.options.filter(opt => opt.trim());
+    if (validOptions.length < 2) {
+      alert('En az 2 seçenek gereklidir');
+      return;
+    }
+    try {
+      const pollData = {
+        question: pollForm.question.trim(),
+        options: validOptions.map(text => ({ text })),
+        expiresAt: pollForm.expiresAt || null,
+        multipleChoice: pollForm.multipleChoice
+      };
+      const response = await apiService.createPoll(postId, pollData);
+      setPosts(prev => prev.map(post => {
+        if (post._id === postId) {
+          return { ...post, poll: response.data.poll };
+        }
+        return post;
+      }));
+      setShowPollModal(null);
+      setPollForm({ question: '', options: ['', ''], expiresAt: '', multipleChoice: false });
+    } catch (error: any) {
+      alert(error.message || 'Anket oluşturulurken bir hata oluştu');
+    }
+  };
+
+  const handleVotePoll = async (postId: string, optionIndex: number) => {
+    try {
+      const response = await apiService.votePoll(postId, optionIndex);
+      setPosts(prev => prev.map(post => {
+        if (post._id === postId) {
+          return { ...post, poll: response.data.poll };
+        }
+        return post;
+      }));
+    } catch (error: any) {
+      alert(error.message || 'Oy verilirken bir hata oluştu');
+    }
+  };
+
+  const addPollOption = () => {
+    if (pollForm.options.length < 10) {
+      setPollForm({ ...pollForm, options: [...pollForm.options, ''] });
+    }
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollForm.options.length > 2) {
+      setPollForm({
+        ...pollForm,
+        options: pollForm.options.filter((_, i) => i !== index)
+      });
     }
   };
 
@@ -776,27 +917,55 @@ const Community: React.FC = () => {
                           </motion.button>
                         )}
                         {user?.id === post.author._id && (
-                          <motion.button
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              background: 'none',
-                              border: 'none',
-                              color: '#cbd5e1',
-                              cursor: 'pointer',
-                              borderRadius: '8px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              fontSize: '14px',
-                              textAlign: 'left',
-                            }}
-                            onClick={() => handleEditPost(post)}
-                            whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                          >
-                            <Edit size={16} />
-                            Düzenle
-                          </motion.button>
+                          <>
+                            <motion.button
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                background: 'none',
+                                border: 'none',
+                                color: '#cbd5e1',
+                                cursor: 'pointer',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                fontSize: '14px',
+                                textAlign: 'left',
+                              }}
+                              onClick={() => handleEditPost(post)}
+                              whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                            >
+                              <Edit size={16} />
+                              Düzenle
+                            </motion.button>
+                            {!post.poll && (
+                              <motion.button
+                                style={{
+                                  width: '100%',
+                                  padding: '10px',
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#cbd5e1',
+                                  cursor: 'pointer',
+                                  borderRadius: '8px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  fontSize: '14px',
+                                  textAlign: 'left',
+                                }}
+                                onClick={() => {
+                                  setShowPollModal(post._id);
+                                  setPollForm({ question: '', options: ['', ''], expiresAt: '', multipleChoice: false });
+                                }}
+                                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                              >
+                                <BarChart3 size={16} />
+                                Anket Oluştur
+                              </motion.button>
+                            )}
+                          </>
                         )}
                         {(user?.id === post.author._id || user?.role === 'admin') && (
                           <motion.button
@@ -864,44 +1033,341 @@ const Community: React.FC = () => {
               </div>
             </div>
 
-            {/* Comments Preview */}
-            {post.comments.length > 0 && (
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '15px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#cbd5e1', marginBottom: '10px' }}>
-                  Son Yorumlar ({post.comments.length})
+            {/* Poll Section */}
+            {post.poll && post.poll.question && (
+              <div style={{ 
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)', 
+                paddingTop: '15px',
+                marginTop: '15px'
+              }}>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  color: '#cbd5e1', 
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <BarChart3 size={18} />
+                  Anket: {post.poll.question}
                 </div>
-                {post.comments.slice(0, 2).map((comment, commentIndex) => (
-                  <div key={comment._id} style={{ marginBottom: '10px', padding: '10px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                {post.poll.options.map((option, optIndex) => {
+                  const totalVotes = post.poll!.options.reduce((sum, opt) => sum + opt.votes.length, 0);
+                  const optionVotes = option.votes.length;
+                  const percentage = totalVotes > 0 ? (optionVotes / totalVotes) * 100 : 0;
+                  const hasVoted = option.votes.includes(user?.id || '');
+                  const isExpired = post.poll!.expiresAt && new Date(post.poll!.expiresAt) < new Date();
+                  
+                  return (
+                    <div key={optIndex} style={{ marginBottom: '10px' }}>
+                      <motion.button
+                        style={{
+                          width: '100%',
+                          padding: '12px 15px',
+                          backgroundColor: hasVoted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                          border: hasVoted ? '1px solid #22c55e' : '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          color: 'white',
+                          textAlign: 'left',
+                          cursor: isExpired ? 'default' : 'pointer',
+                          fontSize: '14px',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}
+                        onClick={() => !isExpired && handleVotePoll(post._id, optIndex)}
+                        disabled={isExpired || !isAuthenticated}
+                        whileHover={!isExpired ? { scale: 1.02 } : {}}
+                        whileTap={!isExpired ? { scale: 0.98 } : {}}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                          <span>{option.text}</span>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            {optionVotes} oy ({percentage.toFixed(0)}%)
+                            {hasVoted && <Check size={14} style={{ display: 'inline', marginLeft: '5px', color: '#22c55e' }} />}
+                          </span>
+                        </div>
+                        {totalVotes > 0 && (
+                          <div style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            height: '100%',
+                            width: `${percentage}%`,
+                            backgroundColor: hasVoted ? 'rgba(34, 197, 94, 0.3)' : 'rgba(59, 130, 246, 0.2)',
+                            zIndex: 0,
+                            transition: 'width 0.3s ease'
+                          }} />
+                        )}
+                      </motion.button>
+                    </div>
+                  );
+                })}
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '10px' }}>
+                  Toplam: {post.poll.options.reduce((sum, opt) => sum + opt.votes.length, 0)} oy
+                  {post.poll.expiresAt && (
+                    <span style={{ marginLeft: '10px' }}>
+                      Bitiş: {new Date(post.poll.expiresAt).toLocaleDateString('tr-TR')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Comments Section */}
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '15px', marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#cbd5e1' }}>
+                  Yorumlar ({post.comments.length})
+                </div>
+                {post.comments.length > 0 && (
+                  <motion.button
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '6px',
+                      color: '#cbd5e1',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => toggleComments(post._id)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {expandedComments.has(post._id) ? 'Gizle' : 'Tümünü Göster'}
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Comment Input */}
+              {isAuthenticated && !replyingTo?.commentId && (
+                <div style={{ marginBottom: '15px' }}>
+                  <textarea
+                    placeholder="Yorum yazın..."
+                    value={commentContents[post._id] || ''}
+                    onChange={(e) => {
+                      setCommentContents({ ...commentContents, [post._id]: e.target.value });
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '14px',
+                      resize: 'vertical',
+                      minHeight: '60px',
+                      fontFamily: 'inherit'
+                    }}
+                    rows={2}
+                  />
+                  <motion.button
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 16px',
+                      backgroundColor: '#3b82f6',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                    onClick={async () => {
+                      const commentContent = commentContents[post._id];
+                      if (commentContent && commentContent.trim()) {
+                        try {
+                          await apiService.addCommentToPost(post._id, commentContent);
+                          setCommentContents({ ...commentContents, [post._id]: '' });
+                          loadPosts();
+                        } catch (error: any) {
+                          alert(error.message || 'Yorum eklenirken bir hata oluştu');
+                        }
+                      }
+                    }}
+                    disabled={!commentContents[post._id]?.trim()}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Yorum Yap
+                  </motion.button>
+                </div>
+              )}
+
+              {/* Comments List */}
+              {(expandedComments.has(post._id) || post.comments.length <= 3) ? (
+                post.comments.map((comment) => (
+                  <div key={comment._id} style={{ 
+                    marginBottom: '15px', 
+                    padding: '12px', 
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                    borderRadius: '8px' 
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                       <img
-                        src={comment.author.avatar}
+                        src={comment.author.avatar || `https://ui-avatars.com/api/?name=${comment.author.name}&background=22c55e&color=fff`}
                         alt={comment.author.name}
                         style={{
-                          width: '20px',
-                          height: '20px',
+                          width: '32px',
+                          height: '32px',
                           borderRadius: '50%',
                           objectFit: 'cover'
                         }}
                       />
-                      <span style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>
-                        {comment.author.name}
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                        {new Date(comment.createdAt).toLocaleDateString('tr-TR')}
-                      </span>
+                      <div style={{ flex: 1 }}>
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: 'white', marginRight: '8px' }}>
+                          {comment.author.name}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                          {new Date(comment.createdAt).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0 }}>
+                    <p style={{ fontSize: '14px', color: '#cbd5e1', margin: '0 0 10px 42px', lineHeight: '1.5' }}>
                       {comment.content}
                     </p>
+                    
+                    {/* Reply Button */}
+                    {isAuthenticated && (
+                      <div style={{ marginLeft: '42px', marginTop: '8px' }}>
+                        <motion.button
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#94a3b8',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          onClick={() => setReplyingTo(
+                            replyingTo?.postId === post._id && replyingTo?.commentId === comment._id 
+                              ? null 
+                              : { postId: post._id, commentId: comment._id }
+                          )}
+                          whileHover={{ color: '#3b82f6' }}
+                        >
+                          <Reply size={14} />
+                          Cevap Ver
+                          {comment.replies && comment.replies.length > 0 && (
+                            <span style={{ marginLeft: '4px' }}>
+                              ({comment.replies.length})
+                            </span>
+                          )}
+                        </motion.button>
+
+                        {/* Reply Input */}
+                        {replyingTo?.postId === post._id && replyingTo?.commentId === comment._id && (
+                          <div style={{ marginTop: '10px' }}>
+                            <textarea
+                              placeholder="Cevabınızı yazın..."
+                              value={replyContent}
+                              onChange={(e) => setReplyContent(e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '6px',
+                                color: 'white',
+                                fontSize: '13px',
+                                resize: 'vertical',
+                                minHeight: '50px',
+                                fontFamily: 'inherit'
+                              }}
+                              rows={2}
+                            />
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                              <motion.button
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: '#22c55e',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  color: 'white',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => handleAddReply(post._id, comment._id)}
+                                disabled={!replyContent.trim()}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                Gönder
+                              </motion.button>
+                              <motion.button
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  color: '#94a3b8',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => {
+                                  setReplyingTo(null);
+                                  setReplyContent('');
+                                }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                İptal
+                              </motion.button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div style={{ marginTop: '10px', marginLeft: '20px', paddingLeft: '20px', borderLeft: '2px solid rgba(255, 255, 255, 0.1)' }}>
+                            {comment.replies.map((reply) => (
+                              <div key={reply._id} style={{ 
+                                marginBottom: '10px', 
+                                padding: '10px', 
+                                backgroundColor: 'rgba(255, 255, 255, 0.03)', 
+                                borderRadius: '6px' 
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                  <img
+                                    src={reply.author.avatar || `https://ui-avatars.com/api/?name=${reply.author.name}&background=3b82f6&color=fff`}
+                                    alt={reply.author.name}
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      borderRadius: '50%',
+                                      objectFit: 'cover'
+                                    }}
+                                  />
+                                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>
+                                    {reply.author.name}
+                                  </span>
+                                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                    {new Date(reply.createdAt).toLocaleDateString('tr-TR')}
+                                  </span>
+                                </div>
+                                <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0, marginLeft: '32px' }}>
+                                  {reply.content}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
-                {post.comments.length > 2 && (
-                  <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '10px' }}>
-                    +{post.comments.length - 2} daha fazla yorum
-                  </div>
-                )}
-              </div>
-            )}
+                ))
+              ) : (
+                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '10px' }}>
+                  +{post.comments.length - 3} daha fazla yorum görmek için tıklayın
+                </div>
+              )}
+            </div>
           </motion.div>
         ))}
       </div>
@@ -1105,6 +1571,200 @@ const Community: React.FC = () => {
               >
                 <Flag size={18} />
                 Raporla
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Poll Creation Modal */}
+      {showPollModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }} onClick={() => {
+          setShowPollModal(null);
+          setPollForm({ question: '', options: ['', ''], expiresAt: '', multipleChoice: false });
+        }}>
+          <motion.div
+            style={{
+              backgroundColor: '#1e293b',
+              borderRadius: '20px',
+              padding: '30px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <BarChart3 size={24} />
+                Anket Oluştur
+              </h3>
+              <motion.button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '8px',
+                }}
+                onClick={() => {
+                  setShowPollModal(null);
+                  setPollForm({ question: '', options: ['', ''], expiresAt: '', multipleChoice: false });
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X size={24} />
+              </motion.button>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                Anket Sorusu
+              </label>
+              <input
+                type="text"
+                placeholder="Anket sorusunu yazın..."
+                value={pollForm.question}
+                onChange={(e) => setPollForm({ ...pollForm, question: e.target.value })}
+                style={inputStyle}
+                maxLength={200}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                  Seçenekler (En az 2, en fazla 10)
+                </label>
+                {pollForm.options.length < 10 && (
+                  <motion.button
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid rgba(34, 197, 94, 0.3)',
+                      borderRadius: '6px',
+                      color: '#22c55e',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                    onClick={addPollOption}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Plus size={14} />
+                    Ekle
+                  </motion.button>
+                )}
+              </div>
+              {pollForm.options.map((option, index) => (
+                <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder={`Seçenek ${index + 1}`}
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...pollForm.options];
+                      newOptions[index] = e.target.value;
+                      setPollForm({ ...pollForm, options: newOptions });
+                    }}
+                    style={{
+                      ...inputStyle,
+                      flex: 1,
+                      marginBottom: 0
+                    }}
+                    maxLength={100}
+                  />
+                  {pollForm.options.length > 2 && (
+                    <motion.button
+                      style={{
+                        padding: '8px',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '6px',
+                        color: '#ef4444',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => removePollOption(index)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Minus size={16} />
+                    </motion.button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '14px', fontWeight: '500' }}>
+                Bitiş Tarihi (Opsiyonel)
+              </label>
+              <input
+                type="datetime-local"
+                value={pollForm.expiresAt}
+                onChange={(e) => setPollForm({ ...pollForm, expiresAt: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="multipleChoice"
+                checked={pollForm.multipleChoice}
+                onChange={(e) => setPollForm({ ...pollForm, multipleChoice: e.target.checked })}
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  cursor: 'pointer'
+                }}
+              />
+              <label htmlFor="multipleChoice" style={{ color: '#cbd5e1', fontSize: '14px', cursor: 'pointer' }}>
+                Çoklu seçim (Birden fazla seçenek seçilebilir)
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <motion.button
+                style={secondaryButtonStyle}
+                onClick={() => {
+                  setShowPollModal(null);
+                  setPollForm({ question: '', options: ['', ''], expiresAt: '', multipleChoice: false });
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                İptal
+              </motion.button>
+              <motion.button
+                style={primaryButtonStyle}
+                onClick={() => showPollModal && handleCreatePoll(showPollModal)}
+                disabled={!pollForm.question.trim() || pollForm.options.filter(opt => opt.trim()).length < 2}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <BarChart3 size={18} />
+                Anket Oluştur
               </motion.button>
             </div>
           </motion.div>

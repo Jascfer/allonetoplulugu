@@ -53,8 +53,52 @@ const communityPostSchema = new mongoose.Schema({
     likes: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    }],
+    replies: [{
+      author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      content: {
+        type: String,
+        required: true,
+        maxlength: [500, 'Reply cannot be more than 500 characters']
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      },
+      likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }]
     }]
   }],
+  poll: {
+    question: {
+      type: String,
+      maxlength: [200, 'Poll question cannot be more than 200 characters']
+    },
+    options: [{
+      text: {
+        type: String,
+        required: true,
+        maxlength: [100, 'Poll option cannot be more than 100 characters']
+      },
+      votes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }]
+    }],
+    expiresAt: {
+      type: Date
+    },
+    multipleChoice: {
+      type: Boolean,
+      default: false
+    }
+  },
   isPinned: {
     type: Boolean,
     default: false
