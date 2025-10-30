@@ -180,8 +180,14 @@ router.put('/profile', auth, [
   body('graduationYear').optional().trim(),
   body('interests').optional().isArray().withMessage('Interests must be an array'),
   body('privacy.profileVisibility').optional().isIn(['public', 'friends', 'private']).withMessage('Invalid profile visibility'),
-  body('privacy.emailVisibility').optional().isBoolean().withMessage('Email visibility must be a boolean'),
-  body('privacy.showActivity').optional().isBoolean().withMessage('Show activity must be a boolean')
+  body('privacy.emailVisibility').optional().custom((value) => {
+    if (value === undefined) return true;
+    return typeof value === 'boolean' || value === 'true' || value === 'false';
+  }).withMessage('Email visibility must be a boolean'),
+  body('privacy.showActivity').optional().custom((value) => {
+    if (value === undefined) return true;
+    return typeof value === 'boolean' || value === 'true' || value === 'false';
+  }).withMessage('Show activity must be a boolean')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -233,8 +239,16 @@ router.put('/profile', auth, [
     // Update privacy settings
     if (privacy) {
       if (privacy.profileVisibility) user.privacy.profileVisibility = privacy.profileVisibility;
-      if (privacy.emailVisibility !== undefined) user.privacy.emailVisibility = privacy.emailVisibility;
-      if (privacy.showActivity !== undefined) user.privacy.showActivity = privacy.showActivity;
+      if (privacy.emailVisibility !== undefined) {
+        user.privacy.emailVisibility = typeof privacy.emailVisibility === 'boolean' 
+          ? privacy.emailVisibility 
+          : privacy.emailVisibility === 'true' || privacy.emailVisibility === true;
+      }
+      if (privacy.showActivity !== undefined) {
+        user.privacy.showActivity = typeof privacy.showActivity === 'boolean' 
+          ? privacy.showActivity 
+          : privacy.showActivity === 'true' || privacy.showActivity === true;
+      }
     }
 
     await user.save();

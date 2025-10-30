@@ -21,6 +21,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+// Trust proxy setting for Railway/Vercel deployments
+app.set('trust proxy', 1);
+
 // Database connection
 connectDB().then(() => {
   // Create admin user after database connection

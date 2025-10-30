@@ -25,9 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: function() {
-      return `https://via.placeholder.com/150/22c55e/ffffff?text=${this.name.charAt(0).toUpperCase()}`;
-    }
+    default: ''
   },
   role: {
     type: String,
