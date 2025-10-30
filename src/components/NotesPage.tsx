@@ -731,30 +731,47 @@ const NotesPage: React.FC = () => {
             Notlar yükleniyor...
           </div>
         </motion.div>
-      ) : notes.length === 0 ? (
-        <motion.div
-          style={{
-            textAlign: 'center',
-            padding: '50px',
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <BookOpen size={isMobile ? 40 : 48} style={{ color: '#64748b', marginBottom: '20px' }} />
-          <h3 style={{ fontSize: isMobile ? '1.3rem' : '1.8rem', color: '#cbd5e1', marginBottom: '15px', padding: isMobile ? '0 10px' : '0' }}>
-            {searchTerm || selectedCategory || selectedSubject 
-              ? 'Arama kriterlerinize uygun not bulunamadı' 
-              : 'Henüz not eklenmemiş'
-            }
-          </h3>
-          <p style={{ color: '#94a3b8', fontSize: isMobile ? '0.95rem' : '1.1rem', padding: isMobile ? '0 10px' : '0' }}>
-            Filtreleri değiştirmeyi veya daha genel bir arama yapmayı deneyin.
-          </p>
-        </motion.div>
+      ) : (
+        <>
+          {/* Debug info - remove in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <div style={{ 
+              padding: '10px', 
+              backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+              borderRadius: '8px', 
+              marginBottom: '20px',
+              fontSize: '12px',
+              color: '#94a3b8'
+            }}>
+              Debug: Loading={loading.toString()}, Notes Count={notes.length}, 
+              Auth={isAuthenticated ? 'Yes' : 'No'}, 
+              AuthLoading={authLoading.toString()}
+            </div>
+          )}
+          {notes.length === 0 ? (
+            <motion.div
+              style={{
+                textAlign: 'center',
+                padding: '50px',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <BookOpen size={isMobile ? 40 : 48} style={{ color: '#64748b', marginBottom: '20px' }} />
+              <h3 style={{ fontSize: isMobile ? '1.3rem' : '1.8rem', color: '#cbd5e1', marginBottom: '15px', padding: isMobile ? '0 10px' : '0' }}>
+                {searchTerm || selectedCategory || selectedSubject 
+                  ? 'Arama kriterlerinize uygun not bulunamadı' 
+                  : 'Henüz not eklenmemiş'
+                }
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: isMobile ? '0.95rem' : '1.1rem', padding: isMobile ? '0 10px' : '0' }}>
+                Filtreleri değiştirmeyi veya daha genel bir arama yapmayı deneyin.
+              </p>
+            </motion.div>
           ) : (
         <motion.div
           style={gridContainerStyle}
