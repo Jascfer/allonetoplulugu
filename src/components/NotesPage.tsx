@@ -864,23 +864,23 @@ const NotesPage: React.FC = () => {
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Eye size={14} style={statIconStyle} />
-                    {note.viewCount}
+                    <span>{note.viewCount || 0}</span>
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Download size={14} style={statIconStyle} />
-                    {note.downloadCount}
+                    <span>{note.downloadCount || 0}</span>
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Star size={14} style={statIconStyle} />
-                    {(note.rating || 0).toFixed(1)}
+                    <span>{(note.rating || 0).toFixed(1)}</span>
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <User size={14} style={statIconStyle} />
-                    {note.author?.name || note.author || 'Bilinmeyen'}
+                    <span>{typeof note.author === 'object' && note.author?.name ? note.author.name : (typeof note.author === 'string' ? note.author : 'Bilinmeyen')}</span>
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Clock size={14} style={statIconStyle} />
-                    {new Date(note.createdAt).toLocaleDateString('tr-TR')}
+                    <span>{new Date(note.createdAt).toLocaleDateString('tr-TR')}</span>
                   </span>
                 </div>
               </div>
