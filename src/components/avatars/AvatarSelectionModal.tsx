@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Upload, Check, Palette } from 'lucide-react';
 import { avatarLibrary, avatarsByCategory, categoryNames, AvatarOption } from './avatarLibrary';
 

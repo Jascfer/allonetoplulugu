@@ -8,7 +8,6 @@ import {
   BookOpen,
   Zap,
   Heart,
-  Share2,
   Trash2,
   Edit,
   Pin,
