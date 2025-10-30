@@ -90,8 +90,8 @@ const NotesPage: React.FC = () => {
       console.log('Parsed notes:', notesData, 'Count:', notesData.length); // Debug log
       setNotes(notesData);
       
-      // Eğer not yoksa ve error yoksa bilgi ver
-      if (notesData.length === 0 && !error) {
+      // Eğer not yoksa bilgi ver
+      if (notesData.length === 0) {
         console.log('No notes found. Check if notes exist in database and are approved.');
       }
     } catch (error: any) {
