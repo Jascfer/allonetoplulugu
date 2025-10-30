@@ -25,10 +25,12 @@ router.get('/posts', async (req, res) => {
     }
     
     const posts = await CommunityPost.find(query)
-      .populate('author', 'name avatar role')
+      .populate('author', 'name avatar role points')
       .populate('likes', 'name')
       .populate('comments.author', 'name avatar')
       .populate('comments.likes', 'name')
+      .populate('comments.replies.author', 'name avatar')
+      .populate('comments.replies.likes', 'name')
       .sort({ isPinned: -1, createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
