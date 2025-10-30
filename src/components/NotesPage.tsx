@@ -902,6 +902,8 @@ const NotesPage: React.FC = () => {
             </motion.div>
           ))}
         </motion.div>
+          )}
+        </>
       )}
     </motion.div>
   );
