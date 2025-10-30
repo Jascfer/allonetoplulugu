@@ -37,6 +37,10 @@ interface Note {
 
 const NotesPage: React.FC = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  
+  // Mobile detection - MUST be at top level before any early returns
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +50,15 @@ const NotesPage: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+
+  // Mobile resize listener - MUST be at top level
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -258,17 +271,6 @@ const NotesPage: React.FC = () => {
       setError(error.message);
     }
   };
-
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const containerStyle = {
     padding: isMobile ? '100px 10px 20px 10px' : '80px 20px 20px 20px',
