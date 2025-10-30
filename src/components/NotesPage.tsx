@@ -49,6 +49,7 @@ const NotesPage: React.FC = () => {
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
@@ -57,9 +58,12 @@ const NotesPage: React.FC = () => {
       if (sortBy) params.append('sortBy', sortBy);
 
       const response = await apiService.getNotes(Object.fromEntries(params));
-      setNotes(response.data.notes || []);
+      const notesData = response.data?.notes || response.data || [];
+      setNotes(Array.isArray(notesData) ? notesData : []);
     } catch (error: any) {
-      setError(error.message);
+      console.error('Load notes error:', error);
+      setError(error.message || 'Notlar yüklenirken bir hata oluştu');
+      setNotes([]);
     } finally {
       setLoading(false);
     }
