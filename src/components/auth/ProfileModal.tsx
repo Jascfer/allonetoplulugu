@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart2, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut, GraduationCap, BookOpen, Building2, Palette, Edit, Users, Eye } from 'lucide-react';
+import { X, User, Mail, Lock, Save, Eye, EyeOff, Settings, FileText, Upload, Camera, BarChart2, Download, Heart, MessageCircle, Award, TrendingUp, Shield, Smartphone, Monitor, Trash2, LogOut, GraduationCap, BookOpen, Building2, Palette, Edit, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import AvatarSelectionModal from '../avatars/AvatarSelectionModal';
