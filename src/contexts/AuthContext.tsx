@@ -77,6 +77,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       apiService.setToken(newToken);
       
       localStorage.setItem('token', newToken);
+      
+      // Dispatch login success event for components that need to reload data
+      window.dispatchEvent(new CustomEvent('userLoggedIn'));
     } catch (error: any) {
       console.error('Login failed:', error);
       // Kullanıcı dostu hata mesajları

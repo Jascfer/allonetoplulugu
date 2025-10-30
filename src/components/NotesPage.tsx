@@ -81,10 +81,25 @@ const NotesPage: React.FC = () => {
   useEffect(() => {
     // Authentication durumu değiştiğinde veya sayfa ilk yüklendiğinde notları yükle
     // Auth loading tamamlandıktan sonra notları yükle
-    if (!authLoading) {
+    if (!authLoading && isAuthenticated) {
       loadNotes();
     }
   }, [isAuthenticated, authLoading, loadNotes]);
+
+  // Listen for login success event - reload notes immediately after login
+  useEffect(() => {
+    const handleUserLoggedIn = () => {
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        loadNotes();
+      }, 300);
+    };
+
+    window.addEventListener('userLoggedIn', handleUserLoggedIn);
+    return () => {
+      window.removeEventListener('userLoggedIn', handleUserLoggedIn);
+    };
+  }, [loadNotes]);
 
   // Auth loading durumunda bekleyelim
   if (authLoading) {
