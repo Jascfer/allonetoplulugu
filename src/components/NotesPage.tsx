@@ -58,8 +58,29 @@ const NotesPage: React.FC = () => {
       if (sortBy) params.append('sortBy', sortBy);
 
       const response = await apiService.getNotes(Object.fromEntries(params));
-      const notesData = response.data?.notes || response.data || [];
-      setNotes(Array.isArray(notesData) ? notesData : []);
+      console.log('Notes API Response:', response); // Debug log
+      
+      // Farklı response formatlarını destekle
+      let notesData = [];
+      if (response && response.data) {
+        if (Array.isArray(response.data.notes)) {
+          notesData = response.data.notes;
+        } else if (Array.isArray(response.data)) {
+          notesData = response.data;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          notesData = response.data.data;
+        }
+      } else if (Array.isArray(response)) {
+        notesData = response;
+      }
+      
+      console.log('Parsed notes:', notesData, 'Count:', notesData.length); // Debug log
+      setNotes(notesData);
+      
+      // Eğer not yoksa ve error yoksa bilgi ver
+      if (notesData.length === 0 && !error) {
+        console.log('No notes found. Check if notes exist in database and are approved.');
+      }
     } catch (error: any) {
       console.error('Load notes error:', error);
       setError(error.message || 'Notlar yüklenirken bir hata oluştu');
@@ -86,7 +107,10 @@ const NotesPage: React.FC = () => {
     // Authentication durumu değiştiğinde veya sayfa ilk yüklendiğinde notları yükle
     // Auth loading tamamlandıktan sonra notları yükle
     if (!authLoading && isAuthenticated) {
+      console.log('Loading notes - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
       loadNotes();
+    } else if (!authLoading) {
+      console.log('Not authenticated - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     }
   }, [isAuthenticated, authLoading, loadNotes]);
 
@@ -235,8 +259,19 @@ const NotesPage: React.FC = () => {
     }
   };
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const containerStyle = {
-    padding: '80px 20px 20px 20px',
+    padding: isMobile ? '100px 10px 20px 10px' : '80px 20px 20px 20px',
     maxWidth: '1400px',
     margin: '0 auto',
     color: 'white',
@@ -245,9 +280,9 @@ const NotesPage: React.FC = () => {
 
   const headerStyle = {
     background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-    padding: '60px 30px',
+    padding: isMobile ? '40px 20px' : '60px 30px',
     borderRadius: '16px',
-    marginBottom: '40px',
+    marginBottom: isMobile ? '20px' : '40px',
     textAlign: 'center' as const,
     boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
     border: '1px solid rgba(255,255,255,0.1)',
@@ -272,54 +307,44 @@ const NotesPage: React.FC = () => {
 
   const backButtonStyle = {
     position: 'absolute' as const,
-    top: '20px',
-    left: '20px',
+    top: isMobile ? '10px' : '20px',
+    left: isMobile ? '10px' : '20px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '10px 16px',
+    padding: isMobile ? '8px 12px' : '10px 16px',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     color: '#cbd5e1',
     border: '1px solid rgba(255, 255, 255, 0.2)',
     borderRadius: '10px',
     textDecoration: 'none',
-    fontSize: '14px',
+    fontSize: isMobile ? '12px' : '14px',
     fontWeight: '500',
     transition: 'all 0.3s ease',
     zIndex: 2,
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      color: 'white',
-    },
   };
 
   const searchContainerStyle = {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     backdropFilter: 'blur(10px)',
     borderRadius: '16px',
-    padding: '30px',
-    marginBottom: '30px',
+    padding: isMobile ? '20px 15px' : '30px',
+    marginBottom: isMobile ? '20px' : '30px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
     border: '1px solid rgba(255,255,255,0.1)',
   };
 
-  const inputStyle = {
+  const inputStyle: React.CSSProperties = {
     width: '100%',
-    padding: '16px 20px',
+    padding: isMobile ? '12px 16px' : '16px 20px',
     border: '2px solid rgba(255,255,255,0.2)',
     borderRadius: '12px',
-    fontSize: '16px',
+    fontSize: isMobile ? '14px' : '16px',
     marginBottom: '15px',
     transition: 'all 0.3s ease',
     backgroundColor: 'rgba(255,255,255,0.1)',
     color: 'white',
-    '::placeholder': {
-      color: '#cbd5e1',
-    },
-    '&:focus': {
-      borderColor: '#22c55e',
-      outline: 'none',
-    },
+    outline: 'none',
   };
 
   const selectStyle = {
@@ -417,9 +442,9 @@ const NotesPage: React.FC = () => {
 
   const gridContainerStyle = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-    gap: '30px',
-    marginTop: '30px',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(350px, 1fr))',
+    gap: isMobile ? '20px' : '30px',
+    marginTop: isMobile ? '20px' : '30px',
   };
 
   const statsContainerStyle = {
@@ -513,21 +538,21 @@ const NotesPage: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.6, staggerChildren: 0.1 }}
           >
-            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#22c55e' }}>10K+</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Not</p>
+            <motion.div style={statCardStyle} whileHover={{ scale: isMobile ? 1 : 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '700', color: '#22c55e' }}>10K+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: isMobile ? '0.9rem' : '1rem' }}>Not</p>
             </motion.div>
-            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#3b82f6' }}>5K+</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Öğrenci</p>
+            <motion.div style={statCardStyle} whileHover={{ scale: isMobile ? 1 : 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '700', color: '#3b82f6' }}>5K+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: isMobile ? '0.9rem' : '1rem' }}>Öğrenci</p>
             </motion.div>
-            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#f97316' }}>50+</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Ders</p>
+            <motion.div style={statCardStyle} whileHover={{ scale: isMobile ? 1 : 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '700', color: '#f97316' }}>50+</h3>
+              <p style={{ color: '#cbd5e1', fontSize: isMobile ? '0.9rem' : '1rem' }}>Ders</p>
             </motion.div>
-            <motion.div style={statCardStyle} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <h3 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#ef4444' }}>100%</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '1rem' }}>Ücretsiz</p>
+            <motion.div style={statCardStyle} whileHover={{ scale: isMobile ? 1 : 1.05 }} whileTap={{ scale: 0.95 }}>
+              <h3 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '700', color: '#ef4444' }}>100%</h3>
+              <p style={{ color: '#cbd5e1', fontSize: isMobile ? '0.9rem' : '1rem' }}>Ücretsiz</p>
             </motion.div>
           </motion.div>
         </div>
@@ -539,8 +564,19 @@ const NotesPage: React.FC = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
-          <div style={{ flexGrow: 1, minWidth: '300px', position: 'relative' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          flexWrap: 'wrap', 
+          gap: '15px', 
+          alignItems: 'stretch', 
+          marginBottom: '20px' 
+        }}>
+          <div style={{ 
+            flexGrow: 1, 
+            minWidth: isMobile ? '100%' : '300px', 
+            position: 'relative' 
+          }}>
             <Search 
               size={20} 
               style={{ 
@@ -556,16 +592,25 @@ const NotesPage: React.FC = () => {
               placeholder="Not ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ ...inputStyle, paddingLeft: '50px' }}
+              style={{ 
+                ...inputStyle, 
+                paddingLeft: '50px',
+                marginBottom: isMobile ? '10px' : '15px'
+              }}
             />
           </div>
           <motion.button
-            style={filterButtonStyle}
+            style={{
+              ...filterButtonStyle,
+              width: isMobile ? '100%' : 'auto',
+              padding: isMobile ? '12px 20px' : '14px 28px',
+              fontSize: isMobile ? '14px' : '16px',
+            }}
             onClick={() => setShowFilters(!showFilters)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Filter size={20} /> Filtreler
+            <Filter size={isMobile ? 18 : 20} /> Filtreler
           </motion.button>
           <select
             value={sortBy}
@@ -649,12 +694,29 @@ const NotesPage: React.FC = () => {
 
       {loading ? (
         <motion.div
-          style={{ textAlign: 'center', padding: '60px' }}
+          style={{ textAlign: 'center', padding: isMobile ? '40px 20px' : '60px' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div style={{ fontSize: '18px', color: '#cbd5e1' }}>Notlar yükleniyor...</div>
+          <div style={{ 
+            fontSize: isMobile ? '16px' : '18px', 
+            color: '#cbd5e1',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '20px'
+          }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid rgba(34, 197, 94, 0.3)',
+              borderTop: '4px solid #22c55e',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }} />
+            Notlar yükleniyor...
+          </div>
         </motion.div>
       ) : notes.length === 0 ? (
         <motion.div
@@ -669,14 +731,14 @@ const NotesPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <BookOpen size={48} style={{ color: '#64748b', marginBottom: '20px' }} />
-          <h3 style={{ fontSize: '1.8rem', color: '#cbd5e1', marginBottom: '15px' }}>
+          <BookOpen size={isMobile ? 40 : 48} style={{ color: '#64748b', marginBottom: '20px' }} />
+          <h3 style={{ fontSize: isMobile ? '1.3rem' : '1.8rem', color: '#cbd5e1', marginBottom: '15px', padding: isMobile ? '0 10px' : '0' }}>
             {searchTerm || selectedCategory || selectedSubject 
               ? 'Arama kriterlerinize uygun not bulunamadı' 
               : 'Henüz not eklenmemiş'
             }
           </h3>
-          <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
+          <p style={{ color: '#94a3b8', fontSize: isMobile ? '0.95rem' : '1.1rem', padding: isMobile ? '0 10px' : '0' }}>
             Filtreleri değiştirmeyi veya daha genel bir arama yapmayı deneyin.
           </p>
         </motion.div>
