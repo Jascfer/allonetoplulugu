@@ -298,7 +298,7 @@ router.post('/posts/:id/poll', auth, [
 
     post.poll = {
       question: question.trim(),
-      options: options.map((opt: any) => ({
+      options: options.map((opt) => ({
         text: opt.text.trim(),
         votes: []
       })),
@@ -357,10 +357,10 @@ router.post('/posts/:id/poll/vote', auth, [
 
     // Check if user already voted (if not multiple choice)
     if (!post.poll.multipleChoice) {
-      const hasVoted = post.poll.options.some((opt: any) => opt.votes.includes(req.userId));
+      const hasVoted = post.poll.options.some((opt) => opt.votes.includes(req.userId));
       if (hasVoted) {
         // Remove vote from all options
-        post.poll.options.forEach((opt: any) => {
+        post.poll.options.forEach((opt) => {
           const voteIndex = opt.votes.indexOf(req.userId);
           if (voteIndex > -1) {
             opt.votes.splice(voteIndex, 1);
